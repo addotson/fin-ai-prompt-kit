@@ -4,17 +4,17 @@ Nov 23, 2026 · @Aaron
 
 ## How to use this kit
 
-Run five stages in order, using only the AI tool and your files. Stage 2 extracts each uploaded file into a JSON fragment, then merges them into one `database.json` by running code. Stages 4 and 5 read that file. Every JSON the tool creates is a file you download, not text you copy, and Stages 4 and 5 read `database.json` as an upload, not a paste. If your tool cannot create files, keep Stages 1 to 5 in one chat and it reads everything from the chat, so you still copy nothing. No stage after Stage 2 depends on the tool re-reading your PDFs or remembering a long conversation.
+Run five stages in order, using only the AI tool and your files. Stage 2 extracts each uploaded file, a short part at a time, straight into one `database.json` by running code. Stages 4 and 5 read that file. Every JSON the tool creates is a file you download, not text you copy, and Stages 4 and 5 read `database.json` as an upload, not a paste. If your tool cannot create files, keep Stages 1 to 5 in one chat and it reads everything from the chat, so you still copy nothing. No stage after Stage 2 depends on the tool re-reading your PDFs or remembering a long conversation.
 
 1. **Stage 1, inventory.** Upload all files, paste the Stage 1 prompt. The tool proves how much of each file it can read, maps every fiscal year from the column headings, and asks only the decisions the spec leaves open. If a file is too long for the tool, it lists the pages to keep instead; trim the PDF (see Trimming a PDF) and start again. Answer the questions, then save the STAGE 1 DECISIONS block it prints.
-2. **Stage 2, extraction and merge.** Paste the Stage 2 prompt. The tool extracts each file in three short parts, one part per response, and saves each part as a downloadable file (or, if it cannot create files, prints it and keeps going); type NEXT after each. After the last part, type NEXT once more: the tool merges everything with code, cross-checks every year that appears in two reports, and gives you `database.json` to download with a MERGE SUMMARY.
+2. **Stage 2, extraction.** Paste the Stage 2 prompt. Each response extracts one short part of one file and adds it to `database.json` with code, giving you a fresh download link; type NEXT after each. Attach a PDF again if the tool says it can no longer see it. After the last part, type FINISH: the tool cross-checks every year that appears in two reports and gives you the final `database.json` with a MERGE SUMMARY.
 3. **Stage 3, review.** Spot-check the MERGE SUMMARY and the JSON against your PDFs using the checklist. Send corrections, restated-figure choices, or different chart years with the correction prompt; the tool rebuilds `database.json`. Download the final file.
 4. **Stage 4, static charts.** Upload `database.json` and paste the Stage 4 prompt. If your tool could not create files, run Stage 4 in the same chat as Stage 2 instead, with no upload. The tool draws the 12 matplotlib charts and the data summary.
 5. **Stage 5, dashboard.** Upload `database.json` (or stay in the same chat) and paste the Stage 5 prompt. The tool writes one interactive HTML file for you to download. Save it as `dashboard.html` and open it in a browser.
 
 Rules for every platform: start a new chat for Stage 1; keep Stages 1–3 in the same chat; Stages 4 and 5 can run in a new chat, or a different tool, because they only need `database.json`; if your tool could not create files, keep them in the same chat. Download every file the tool offers as soon as it appears; chat file links can expire. Fill in the three blanks at the top of Stage 1 before sending.
 
-You can upload more than two years of audited statements. Every report adds its own year, and its comparative column becomes a cross-check on the year before. The charts compare the oldest and newest years by default; name different years in the Stage 3 correction prompt.
+You can upload more than two years of audited statements. Every report adds its own year, and its comparative column becomes a cross-check on the year before. Upload consecutive reports (for example FY26 and FY25) to get the cross-check; reports with a gap between them (FY26 and FY22) add years but nothing to compare. The charts compare the oldest and newest years by default; name different years in the Stage 3 correction prompt.
 
 ### What changed from the original class prompt
 
@@ -24,15 +24,15 @@ The chart specifications, Sections A–F, checks, and CAGR formula come from the
 | --- | --- | --- |
 | "without stopping to ask me questions" | Stage 1 asks bounded questions, then stops | Your method: resolve judgment calls before extraction |
 | "Never ask me to upload anything else" | Tool may list missing items once in Stage 1, but must proceed without them | Your method; still never blocks on, or invents, missing data |
-| "Extract Sections A through F... Don't print them" | Stage 2 saves them as downloadable JSON files, one per uploaded file, then merges them into `database.json` | Portable database; short responses for tools with small output limits |
+| "Extract Sections A through F... Don't print them" | Stage 2 writes them into `database.json` by running code, one short part per response, and prints only a summary table | Portable database; short responses; no step retypes earlier data |
 | "HOW TO WORK" steps 1–5 | Split across Stages 1, 2, 4 | Long single-pass tasks degrade on weaker tools (inference, not measured) |
 | "Don't create files or documents" | Kept for Stage 4; Stage 5 creates one HTML file | Dashboard requirement |
 | Page citation format unspecified | Defined as printed page number, with PDF page of the uploaded file in brackets | Tools pick inconsistently; makes spot-checks possible |
 | (new) | Stage 1 must prove how much of each file it can read, and lists pages to keep if it cannot read all of it | Copilot silently read only the first ~129,000 characters of each report |
 | "Use only the column for the fiscal year that file covers" | Kept as the primary value; the comparative column is also recorded, and every year is read from the printed column heading | The overlap becomes a cross-check; file names can be wrong |
 | Two institution years and three unit years, fixed | Any number of years; the charts compare the oldest and newest unless you name others in Stage 3 | Use more data when it is provided |
-| The tool compares and totals across files | The merge at the end of Stage 2 runs as code, following fixed rules written into the prompt | Tools compared overlapping years inconsistently when they did it freehand |
-| JSON printed in chat, then copied and pasted | Every JSON is a downloadable file, delivered in short parts; Stages 4 and 5 read `database.json` as an upload, or from the same chat, and confirm it loaded completely | Copilot truncated a pasted `database.json` (observed), and refused a whole-file fragment as too large (observed) |
+| The tool compares and totals across files | Arithmetic checks run in code after every part; the cross-file comparison runs in code at FINISH | Tools skipped the check that would have failed, and a merge left to the end produced an empty file (observed in Copilot) |
+| JSON printed in chat, then copied and pasted | `database.json` is a downloadable file updated after every part; Stages 4 and 5 read it as an upload, or from the same chat, and confirm it loaded completely | Copilot truncated a pasted `database.json` and refused a whole-file response as too large (observed) |
 | Section F: most recent audited year | Optionally every year (Stage 1 question j) | Balance-sheet overlap check, at the cost of longer extractions |
 
 The DATA SUMMARY still prints at the end of Stage 4. Stage 5 repeats it inside the dashboard.
@@ -47,7 +47,7 @@ STAGE 1 OF 5: FILE INVENTORY, COVERAGE CHECK, AND QUESTIONS. Do not extract numb
 My institution: ________ My unit: ________
 Unit data: ________ (write UPLOAD or SKIP)
 
-This is the first of five stages. Later stages will extract each file into a JSON fragment, combine the fragments into one database, draw 12 charts, and build an HTML dashboard. In this stage you only identify files, prove what you can read, and ask me the decisions you need.
+This is the first of five stages. Later stages will extract each file into one JSON database, draw 12 charts, and build an HTML dashboard. In this stage you only identify files, prove what you can read, and ask me the decisions you need.
 
 WHAT I'VE PROVIDED
 - Audited financial statements for two or more of my institution's fiscal years. Each report usually
@@ -78,7 +78,7 @@ blank, use the names in the files.
    - Liquidity note (private only)
    - Discretely presented foundation statements, if any (public only)
    For each unit file, list the pages or sheets with the budget or actuals tables.
-4. YEAR MAP. Print a table: File name | What it is | Own year (the year the file covers) | Comparative year | Column headings as printed, with page | Year-end | Units | Standard | Audited? | Status (OK, TRUNCATED, or UNREADABLE). Mark a comparative column "restated" if its heading says so. Then list each fiscal year found, the file that covers it (its primary source), and any other file that also shows it as a comparative column. Those overlaps will be cross-checked later.
+4. YEAR MAP. Print a table: File name | What it is | Own year (the year the file covers) | Comparative year | Column headings as printed, with page | Year-end | Units | Standard | Audited? | Status (OK, TRUNCATED, or UNREADABLE). Mark a comparative column "restated" if its heading says so. Then list each fiscal year found, the file that covers it (its primary source), and any other file that also shows it as a comparative column. Those overlaps will be cross-checked later. If no year appears in two files, say that the cross-check will not run because the reports are not consecutive.
 5. IF ANY FILE IS TRUNCATED OR UNREADABLE, print PAGES TO KEEP for that file:
    - Use the file's table of contents to find the printed page ranges of the basic financial statements and of each note in the coverage list, and convert them to PDF page ranges.
    - List what can be removed, with page ranges: transmittal letters, management's discussion and analysis, required supplementary information schedules, combining and supplementary schedules, the statistical section, and single audit or federal awards reports.
@@ -91,7 +91,7 @@ blank, use the names in the files.
 9. Ask me only the questions below that apply to these files, numbered, one line each, with your proposed default answer in brackets. Ask nothing else.
    a. Private (FASB): does the statement of activities present an operating measure (case a) or not (case b)? State which you found and ask me to confirm.
    b. Public (GASB): is there a discretely presented foundation that holds gifts and endowment? Confirm it should be included where the spec says.
-   c. Are hospital or health system amounts in separate columns? Confirm you will use academic columns only.
+   c. Are hospital or health system amounts in separate columns? Confirm you will use academic columns only. If a hospital or health system is consolidated with no separate columns, say so, give patient care revenue as a share of total operating revenue, and confirm that the charts will include it.
    d. Does the state pay pension or OPEB contributions on the institution's behalf (on-behalf payments)? If found, confirm exclusion.
    e. Scholarship allowances: are they combined with housing or other revenue? Is a tuition-only portion disclosed?
    f. Unit budget: list the current budget's expense categories and revenue categories as you found them. If there are more than 8, propose which to combine.
@@ -114,27 +114,30 @@ If Stage 1 reports a file as TRUNCATED, make a copy with only the pages it lists
 
 Printed page numbers stay the same after trimming. PDF page numbers in later citations refer to the trimmed copy, so keep the trimmed copy for the Stage 3 spot-checks. Trimming helps even when Stage 1 reports OK: less text means less for the tool to misread, and on tools with file limits (Copilot in particular) it is the difference between reading the notes and not.
 
-## Stage 2 prompt: extraction to JSON fragments
+## Stage 2 prompt: extraction into database.json
 
-Paste after Stage 1, in the same chat. Each file comes back in three short parts, one per response. If the tool can create files, download each part as it appears, so you can restart without re-extracting. If it cannot, it prints each part in a code block and carries on; you do not need to copy anything, because the merge reads the parts from the chat. After the last part, type NEXT once more and the tool builds `database.json`. If the tool loses track, start a new chat, upload the remaining source file and any parts you already have, and paste Stage 2 with the STAGE 1 DECISIONS block filled in. The rules between the BEGIN and END markers are the original prompt, edited only to record every year column.
+Paste after Stage 1, in the same chat. Each response extracts one short part of one file (three parts per file) and adds it to `database.json` by running code; type NEXT after each. Download `database.json` whenever the tool offers it: each download is a backup you can attach if the tool loses the file. If the tool says it can no longer see a PDF, attach that PDF again. After the last part, type FINISH: the tool runs the cross-checks and gives you the final `database.json` with a MERGE SUMMARY. If the tool says NO CODE, it prints each part as a table instead and prints the whole database once at FINISH. The rules between the BEGIN and END markers are the original prompt, edited only to record every year column.
 
 ```text
-STAGE 2 OF 5: EXTRACT EACH FILE INTO A JSON FRAGMENT, ONE FILE PER RESPONSE. Do not draw charts. Do not calculate CAGRs or ratios.
+STAGE 2 OF 5: BUILD database.json ONE SHORT PART AT A TIME. Do not draw charts. Do not calculate CAGRs or ratios.
 
 STAGE 1 DECISIONS: use the STAGE 1 DECISIONS block from this chat. If this is a new chat, I have pasted it here:
 <paste the STAGE 1 DECISIONS block here, or leave this line as is in the same chat>
 
-Never ask me to upload anything else. If something is missing, work with what you have, and
-never fill the gap with invented, sample, or example numbers.
+Never ask me to upload anything else, except as described under HOW THIS STAGE WORKS. If something
+is missing, work with what you have, and never fill the gap with invented, sample, or example numbers.
 Unit data comes only from my unit files. If Unit data is UPLOAD but no unit budget or actuals files
 are among the uploads, treat Unit data as SKIP and say so. Never invent a unit, never use an
 example or hypothetical department, and never use institution-wide numbers, or a share of them,
 in place of unit data.
 
-ONE FILE AT A TIME
-- Extract one file per response, in the order of the Stage 1 year map: newest institution report first, then older reports, then unit files. The bond rating report gets no fragment of its own; its three items go into the fragment of the most recent institution report.
+HOW THIS STAGE WORKS
+- You build one file, database.json, a little at a time. Each response extracts one PART of one source file and adds it to database.json by running code. You never retype earlier parts.
+- Order: the Stage 1 year map, newest institution report first, then older reports, then unit files. The bond rating report's three items go into the most recent institution report's PART 3.
+- Parts. Institution report: PART 1 = Section B (revenue lines, totals, tuition detail). PART 2 = Section D. PART 3 = Section F if this file needs it, plus this file's judgment calls and not-found items. Unit file: PART 1 = Section A. PART 2 = Sections C and E. PART 3 = this file's judgment calls and not-found items. If your response limit comfortably allows it, you may do more than one part of the same file in one response.
 - Before extracting a file, re-read the column headings on its statement pages. Each column's fiscal year comes from its printed heading, never from the file name. Label it "FY" plus the calendar year in which it ends.
-- Finish reading a section's source pages before writing that section's JSON.
+- Read a part's source pages before writing any of its numbers.
+- If you can no longer see the source file, say so in one line and ask me to attach it again. If database.json from your previous response is no longer available to your code, ask me to attach the latest database.json I downloaded. These are the only uploads you may ask for.
 
 ===== BEGIN ORIGINAL RULES (edited to record every year column) =====
 EXTRACTION RULES
@@ -231,7 +234,7 @@ expenses and net assets by class, kept separate. Never hospitals, health systems
 associations.
 - From the bond rating report, if provided: agency, rating, and median days cash on hand for that
 rating category.
-CHECKS (do these before writing the fragment; no one else will check these numbers before the
+CHECKS (do these before saving each part; no one else will check these numbers before the
 charts are made)
 - Each column's fiscal year was read from its printed heading, and each number comes from the
 column for that year.
@@ -242,36 +245,57 @@ nonoperating, in each column.
 each column.
 - Net asset classes add up to total net assets.
 - Unit lines add up to the stated totals in each unit year column.
-- Record each column's year-end date as printed. The merge step counts the years between them.
+- Record each column's year-end date as printed. The FINISH step counts the years between them.
 If a check fails, re-read the source and correct it. If it still fails, continue, and report it in the
-fragment's checks.
+database checks.
 ===== END ORIGINAL RULES =====
 
-OUTPUT FORMAT FOR EACH FILE: THREE SHORT PARTS
-Deliver each file's fragment in three parts, one part per response, so no response is long:
-- Institution report: PART 1 = B_inst_revenue. PART 2 = D_inst_expenses. PART 3 = F_balance_sheet (null if this file needs none), checks, judgment_calls, and not_found.
-- Unit file: PART 1 = A_unit_expenses. PART 2 = C_unit_revenue and E_unit_totals. PART 3 = checks, judgment_calls, and not_found.
-Every part is one complete, valid JSON object that starts with "kit_schema", "file", "meta", "columns", and "part" (1, 2, or 3), followed by that part's keys from the FRAGMENT SCHEMA below. Leave out sections that do not apply to this file. The merge step joins the parts of each file.
-1. Save each part as a downloadable file named fragment-<own column key>-part<n>.json (for example fragment-FY2025-part1.json), using your code tool or file-creation feature, and give me the link. Do not print the part in the chat when you can save it.
-2. If you cannot create files in this chat, print the part in one code block instead and keep going. The merge step will read it from this chat. Either way is acceptable. Never stop, shorten the extraction, or ask me how to proceed because of output size or file support.
-3. Every number is an object {"v": <whole-dollar integer, or null if NOT FOUND>, "src": "<page or sheet!row in this file>"}. Negative numbers stay negative. Never write thousands or millions.
-4. Every null value whose src is not "N/A" also appears in "not_found". "N/A" means the item does not apply to this institution; NOT FOUND means it applies but you could not find it.
-5. With PART 3, also print a CHECKS table for this file: Check | Column | PASS / FAIL / N/A | Detail (the two numbers compared). If Unit data is SKIP, mark unit checks N/A.
-6. If one part still will not fit in a response, stop at the end of a complete line, write "Type continue for the rest of PART <n>," and resume exactly where you stopped.
-7. After each part, write: "<file name>: PART <n> of 3 done. Type NEXT." After PART 3 of the last file, write: "All parts done. Type NEXT to build database.json." Then stop.
+EACH RESPONSE
+1. Extract this part's values for every column in the file: the file's own year and its comparative year, or, for a unit file, every year column.
+2. Run code (Python) that:
+   a. loads database.json if it exists, or starts it from the DATABASE SCHEMA below;
+   b. records this file in meta.files once, with its columns (key, fiscal year, type, role, year-end, heading as printed, heading page, restated);
+   c. writes this part's values following the MERGE RULES, replacing any earlier values from the same file and part and leaving everything else untouched;
+   d. re-runs every arithmetic CHECK the data now allows, for every column, and replaces this file's checks;
+   e. saves database.json and prints one COUNT line for every section and column in the whole database, for example "B FY2026: 17 lines, total included $9,391,347,000; comparatives from FY26.pdf: FY2025 17 lines".
+3. Give me the download link to the updated database.json.
+4. Print only: a short table of what this part added (Label | Category or bucket | Value for each column | src), the COUNT lines, and any FAIL check. Do not print the JSON.
+5. End with "<file name>: PART <n> of 3 saved to database.json. Type NEXT." After the last part of the last file, end with "All files extracted. Type FINISH to run the cross-checks." Then stop.
+If you cannot run code or save files at all, say NO CODE once. Then in each response print this part as the table in item 4, with every value and src, and keep going; at FINISH, build database.json from those tables following the same rules and print it once, in one code block.
+Never stop, shorten the extraction, or ask me how to proceed because of output size.
 
-FRAGMENT SCHEMA (angle brackets describe the value; they are not data)
+MERGE RULES (your code applies these every time it writes)
+1. Values for a column key come only from the file where that column's role is "own". Every comparative column value goes into "comparatives" for cross-checking and never replaces an own value. If two files have the same own column, keep the more recent file's values and put the other file's values into "comparatives".
+2. Match lines across files by label, ignoring case, punctuation, and "&" versus "and". The newest file's label, category, bucket, and included status apply to every year; record each difference in classification_differences.
+3. Every "src" starts with its file name, for example "FY25 audit.pdf: p. 23 [PDF 31]".
+4. Every number is {"v": <whole-dollar integer, or null if NOT FOUND>, "src": "<file name>: <page or sheet!row>"}. Negative numbers stay negative. Never write thousands or millions. Use null with src "N/A" for items that do not apply (for example, net_assets_private at a public institution). Every null whose src is not "N/A" also appears in not_found.
+
+WHEN I TYPE FINISH (run code)
+1. Unit columns that appear only as comparatives (for example, prior actuals shown in the budget file) are moved from "comparatives" into the unit sections and listed in meta.comparative_only_columns_used. Institution columns that appear only as comparatives are not used for charts.
+2. OVERLAP CHECK. For every comparative whose column also has an own value, compare the two: every line, every total, gross tuition, each Section B category (included lines) and each Section A or D bucket, and every Section E and F number present in both. Status: MATCH (identical); ROUNDING (differs by no more than half the rounding unit of the coarser file, for example $500 when one file is in thousands; for a category or bucket, that amount times its number of lines); MISMATCH; ONE_NOT_FOUND (one side null); NO_MATCHING_LINE (a line in one file has no matching label in the other). Save every result in overlap_checks.
+3. Chart years, unless I name others: earlier = oldest institution column used; later = newest. Unit: oldest = oldest actuals column; prior = newest actuals column before the budget year, or null if there is none besides oldest; budget = newest budget column. Years between two columns = months between their year-end dates ÷ 12. Fill meta.inst_years, unit_columns, year_ends, chart_years, and unit_chart_columns.
+4. Re-run every arithmetic CHECK on every column, and add one check per column that its year came from a printed heading.
+5. Save database.json, give me the link, and print the COUNT lines and a MERGE SUMMARY: each year used and its source file; years not used and why; chart years and years between; counts by overlap status; a table of every overlap row that is not MATCH or ROUNDING (Year | Item | Value used, with src | Comparative value, with src | Difference | Restated?); classification differences; every FAIL check. If no year appears in two files, say the cross-check could not run because the reports are not consecutive.
+6. End with: "Stage 2 complete. Download database.json. Review it with the Stage 3 checklist." Then stop.
+
+DATABASE SCHEMA (database.json; angle brackets describe the value; they are not data)
 {
- "kit_schema": "fragment-v2",
- "file": {"file": "<file name as uploaded>", "kind": "institution|unit", "what": "", "standard": "GASB|FASB|IFRS|other", "audited": <bool>, "units_in_source": "dollars|thousands|millions", "status": "OK|TRUNCATED|UNREADABLE", "last_page_seen": "<printed page [PDF page]>"},
+ "kit_schema": "database-v2",
  "meta": {
   "institution": "<name>", "unit": "<name or null>",
   "unit_data_requested": "UPLOAD|SKIP", "unit_data_applied": "UPLOAD|SKIP", "unit_data_reason": "<text>",
-  "basis": "GASB|FASB_case_a|FASB_case_b|IFRS|other", "currency": "<ISO code>",
-  "page_convention": "printed page [PDF page of the uploaded file]", "balance_sheet_years": "LATEST|ALL",
-  "user_decisions": [{"question": "", "answer": ""}]
+  "basis": "GASB|FASB_case_a|FASB_case_b|IFRS|other", "currency": "<ISO code>", "audited": <true only if every institution file is audited>,
+  "page_convention": "file name: printed page [PDF page of the uploaded file]", "balance_sheet_years": "LATEST|ALL",
+  "user_decisions": [{"question": "", "answer": ""}],
+  "files": [{"file": "<file name as uploaded>", "kind": "institution|unit", "what": "", "standard": "GASB|FASB|IFRS|other", "audited": <bool>, "units_in_source": "dollars|thousands|millions", "status": "OK|TRUNCATED|UNREADABLE", "last_page_seen": "<printed page [PDF page]>",
+   "columns": [{"key": "<institution: FY label, e.g. FY2025; unit: FY label plus A for actuals or B for budget, e.g. FY2025A, FY2026B>", "fiscal_year": "<FY label>", "type": "audited|actual|budget", "role": "own|comparative", "year_end": "<YYYY-MM-DD>", "heading_as_printed": "<column heading, word for word>", "heading_src": "<page>", "restated": <bool>, "used_as_primary": <bool>}]}],
+  "inst_years": ["<institution column keys used, oldest first>"],
+  "unit_columns": [{"key": "", "fiscal_year": "", "type": "actual|budget"}],
+  "year_ends": {"<column key>": "<YYYY-MM-DD>"},
+  "chart_years": {"earlier": "<key>", "later": "<key>", "years_between": <number>},
+  "unit_chart_columns": {"oldest": "<key or null>", "prior": "<key or null>", "budget": "<key or null>", "years_between_oldest_and_budget": <number or null>},
+  "comparative_only_columns_used": ["<key>"]
  },
- "columns": [{"key": "<institution: FY label, e.g. FY2025; unit: FY label plus A for actuals or B for budget, e.g. FY2025A, FY2026B>", "fiscal_year": "<FY label>", "type": "audited|actual|budget", "role": "own|comparative", "year_end": "<YYYY-MM-DD>", "heading_as_printed": "<column heading, word for word>", "heading_src": "<page>", "restated": <bool>}],
  "A_unit_expenses": {
   "categories": ["<current-budget category names, max 8>"],
   "lines": [{"label": "<as labeled>", "category": "", "bucket": "PEOPLE|SPACE|STUFF", "values": {"<column key>": <num>}}],
@@ -312,45 +336,20 @@ FRAGMENT SCHEMA (angle brackets describe the value; they are not data)
   "foundation": {"present": <bool>, "name": "", "total_expenses": <num>, "without_donor_restrictions": <num>, "with_donor_held_in_perpetuity": <num>, "with_donor_not_in_perpetuity": <num>},
   "rating": {"provided": <bool>, "agency": "", "rating": "", "median_days_cash": <num>}
  }},
- "checks": [{"check": "", "column": "<column key>", "status": "PASS|FAIL|N/A", "detail": ""}],
- "judgment_calls": ["<excluded revenue lines and why; lines that mix buckets; placement of amortization and scholarship allowances>"],
- "not_found": [{"section": "", "column": "<column key>", "item": ""}]
-}
-<num> means {"v": integer or null, "src": "page or sheet!row"}. Use null for <num> fields that do not apply (for example, net_assets_private at a public institution) and set src to "N/A". Every "values", "totals", and other object keyed by "<column key>" has one entry for each column listed in "columns" for this file.
-
-WHEN I TYPE NEXT AFTER THE LAST FRAGMENT: BUILD database.json BY RUNNING CODE
-Write and run code (Python) that reads every part (the saved files, or the code blocks you printed in this chat), joins the parts of each file into one fragment, and writes database.json. Do not retype numbers by hand. If saved part files are no longer available to your code, read the parts from this chat; if neither works, ask me to upload the part files I downloaded. That is the only upload you may ask for.
-MERGE RULES
-1. Each column key takes its values from the file where that column's role is "own". If two files have the same own column, use the more recent file and cross-check the other.
-2. An institution column that appears only as a comparative column is not used; list it in the MERGE SUMMARY. A unit column that appears only inside another unit file (for example, prior actuals shown in the budget file) is used.
-3. Match lines across files by label, ignoring case, punctuation, and "&" versus "and". Use the newest file's label, category, bucket, and included status for every year, and list every line whose category, bucket, or included status differs between files in classification_differences.
-4. Chart years, unless I name others: earlier = oldest institution column used; later = newest. Unit: oldest = oldest actuals column; prior = newest actuals column before the budget year, or null if there is none besides oldest; budget = newest budget column. Years between two columns = months between their year-end dates ÷ 12.
-5. OVERLAP CHECK. Wherever a column also appears in a second file (as its comparative column, or as a second own column), compare the second file's value with the value used, for every line, every total, gross tuition, each Section B category (included lines) and each Section A or D bucket, and every Section E and F number present in both. Status: MATCH (identical); ROUNDING (differs by no more than half the rounding unit of the coarser file, for example $500 when one file is in thousands; for a category or bucket, that amount times its number of lines); MISMATCH; ONE_NOT_FOUND (one side null); NO_MATCHING_LINE (a line in one file has no matching label in the other).
-6. Re-run the arithmetic CHECKS on the merged values for every column, and add one check per column that its year came from a printed heading.
-7. Every "src" in database.json starts with its file name, for example "FY25 audit.pdf: p. 23 [PDF 31]".
-THEN
-- Save database.json as a downloadable file and give me the link. Do not print it in the chat. If you cannot create files, do not print it either; write "database.json is ready in this chat. Run Stages 4 and 5 in this same chat." Print it only if I ask, in code blocks labeled "database.json PART <n> OF <N>" that join into one file.
-- Print a MERGE SUMMARY: each year used and its source file; years not used and why; chart years and years between; counts by overlap status; a table of every overlap row that is not MATCH or ROUNDING (Year | Item | Value used, with src | Second file's value, with src | Difference | Restated?); classification differences; every FAIL check.
-- If you could not run code, merge by following the same rules yourself and put "MERGED WITHOUT CODE: check totals carefully" at the top of the MERGE SUMMARY.
-- End with: "Stage 2 complete. Download database.json. Review it with the Stage 3 checklist." Then stop.
-
-DATABASE SCHEMA (database.json)
-{
- "kit_schema": "database-v2",
- "meta": <the fragment "meta" fields, plus: "audited": <true only if every institution file is audited>, "files": [<each fragment's "file" object, with its "columns" list; each column adds "used_as_primary": <bool>>], "inst_years": ["<institution column keys used, oldest first>"], "unit_columns": [{"key": "", "fiscal_year": "", "type": "actual|budget"}], "year_ends": {"<column key>": "<YYYY-MM-DD>"}, "chart_years": {"earlier": "<key>", "later": "<key>", "years_between": <number>}, "unit_chart_columns": {"oldest": "<key or null>", "prior": "<key or null>", "budget": "<key or null>", "years_between_oldest_and_budget": <number or null>}, "comparative_only_columns_used": ["<key>"]>,
- "A_unit_expenses", "B_inst_revenue", "C_unit_revenue", "D_inst_expenses", "E_unit_totals", "F_balance_sheet": <same shapes as in the FRAGMENT SCHEMA, with one entry for each column key used, each taken from that column's primary file; a section with no data is null>,
- "overlap_checks": [{"year": "<key>", "section": "", "item": "", "status": "MATCH|ROUNDING|MISMATCH|ONE_NOT_FOUND|NO_MATCHING_LINE", "difference": <number or null>, "used": <num>, "second": <num>, "second_file": "", "restated": <bool>}],
+ "comparatives": [{"file": "", "column": "<key>", "restated": <bool>, "section": "", "item": "<line label, or field such as total_included, tuition.gross, or F.cash_and_equivalents>", "value": <num>}],
+ "overlap_checks": [{"year": "<key>", "section": "", "item": "", "status": "MATCH|ROUNDING|MISMATCH|ONE_NOT_FOUND|NO_MATCHING_LINE", "difference": <number or null>, "used": <num>, "comparative": <num>, "comparative_file": "", "restated": <bool>}],
  "overrides": [{"year": "<key>", "item": "", "replaced": <num>, "with": <num>}],
  "classification_differences": [{"section": "", "line": "", "attribute": "", "used": "", "used_from": "<file>", "other": "", "other_from": "<file>"}],
- "checks": [{"source": "<file name or merge>", "check": "", "column": "<key>", "status": "PASS|FAIL|N/A", "detail": ""}],
- "judgment_calls": ["<file name>: <text>"],
+ "checks": [{"source": "<file name or FINISH>", "check": "", "column": "<key>", "status": "PASS|FAIL|N/A", "detail": "<the two numbers compared>"}],
+ "judgment_calls": ["<file name>: <excluded revenue lines and why; lines that mix buckets; placement of amortization and scholarship allowances>"],
  "not_found": [{"file": "", "section": "", "column": "<key>", "item": ""}]
 }
+<num> means {"v": integer or null, "src": "file name: page or sheet!row"}. A section with no data is null. Every "values", "totals", and other object keyed by "<column key>" holds own values only.
 ```
 
 ## Stage 3: review and correct
 
-This stage is you, not the tool. It takes about 15 to 30 minutes and is the main defense against a confident wrong number reaching a chart. Work from the MERGE SUMMARY the tool printed and the `database.json` you downloaded. To see more, ask in the same chat, for example "Show every overlap_checks row for FY2025."
+This stage is you, not the tool. It takes about 15 to 30 minutes and is the main defense against a confident wrong number reaching a chart. Work from the MERGE SUMMARY the tool printed and the `database.json` you downloaded. First check the COUNT lines: every section you expect should have lines for every year. A section with zero lines means the data never reached the file, whatever the summary says. To see more, ask in the same chat, for example "Show every overlap_checks row for FY2025."
 
 - [ ] Year headings: confirm each file's own year in the MERGE SUMMARY matches the column heading on its statement page, not the file name. Any file marked TRUNCATED or UNREADABLE: trim it and redo Stages 1 and 2.
 - [ ] Overlap MISMATCH rows: open both cited pages. If one extraction is wrong, correct it. If the later report marks the column restated, decide which figure to use. By default each year comes from its own report, as originally reported; to use the restated figure, add a USE RESTATED line to the correction prompt, and include the affected totals too.
@@ -368,10 +367,10 @@ This stage is you, not the tool. It takes about 15 to 30 minutes and is the main
 Correction prompt, same chat as Stage 2. Delete the numbered lines you do not need:
 
 ```text
-STAGE 3 CORRECTIONS. Apply only the changes below. Update the affected fragment parts and re-run their CHECKS, then rebuild database.json with the same merge code and MERGE RULES. Save the new database.json as a downloadable file and give me the link (if you cannot create files, keep it in this chat as before), and print the MERGE SUMMARY again. Do not change any other value.
+STAGE 3 CORRECTIONS. Apply only the changes below to database.json by running code (if you no longer have it, ask me to attach the latest copy). Then repeat the FINISH steps: re-run the checks and the overlap check, save database.json, give me the download link, and print the COUNT lines and the MERGE SUMMARY. Do not change any other value.
 
-1. <field path, e.g. D_inst_expenses.lines["Supplies and services"].values.FY2025 in fragment-FY2025.json> should be <amount> per <page>.
-2. USE RESTATED: <item, e.g. B_inst_revenue line "Federal grants and contracts">, <year>. Use the later report's comparative value for that year and record it in overrides.
+1. <field path, e.g. D_inst_expenses.lines["Supplies and services"].values.FY2025> should be <amount> per <file name and page>.
+2. USE RESTATED: <item, e.g. B_inst_revenue line "Federal grants and contracts">, <year>. Use the later report's comparative value for that year from "comparatives" and record it in overrides.
 3. CHART YEARS: earlier <FY____>, later <FY____>.
 ```
 
@@ -669,10 +668,10 @@ The biggest cross-platform fixes are mechanical: send the tool fewer pages, one 
 ### Techniques for every platform
 
 - **Trim long PDFs.** Keep only the statements and the notes Stage 1 lists (see Trimming a PDF). Check the last-page quote in Stage 1 against your PDF: a tool that claims to read the whole file but quotes the wrong text is reading part of it.
-- **One file per response.** Stage 2 already works this way, and each fragment is saved as a file, so a long chat does not have to hold everything in one response.
+- **Short parts, saved by code.** Stage 2 extracts one part per response and adds it to `database.json` with code, so no response holds much and nothing is retyped. Check the COUNT lines each time: they show what is actually in the file.
 - **Upload JSON; never paste it.** Stages 4 and 5 expect `database.json` as an upload and check that it loaded completely. Rename `.json` to `.txt` if the tool rejects the upload. If a tool cannot create downloadable files, run Stages 4 and 5 in the same chat as Stage 2; they read the database from the chat.
 - **Split long prompts.** If a tool truncates or rejects a long message, send it in parts. Start Part 1 with: `This prompt arrives in 2 parts. After each part, reply only "Received part N." Begin work only after the final part.` Split Stage 2 after END ORIGINAL RULES; split Stage 4 after CHART 201.2.
-- **Start fresh when the tool drifts.** Signs: bracketed placeholders on a chart, an example institution name, numbers that differ from the JSON. Open a new chat and resume from the saved fragments or JSON; that is what they are for.
+- **Start fresh when the tool drifts.** Signs: bracketed placeholders on a chart, an example institution name, numbers that differ from the JSON. Open a new chat and resume from the latest `database.json`; that is what it is for.
 - **Compare to the answer key** before trusting any platform (see Testing).
 
 ### By platform
@@ -681,8 +680,8 @@ The biggest cross-platform fixes are mechanical: send the tool fewer pages, one 
 | --- | --- | --- | --- |
 | Claude | Default chat with file creation enabled | Long Stage 4 output may need several "continue" turns | None beyond the kit |
 | ChatGPT | A model with the data analysis / code tool on | Occasionally re-reads PDFs instead of the JSON | The DATA SOURCE line in Stage 4; check the Calculation check table |
-| Gemini | Gemini app with the most capable model on your plan; Canvas for Stage 5. Google AI Studio is an alternative with adjustable output length (unverified for your account) | May describe code rather than run it, or show tables instead of chart images (unverified). Compared overlapping years inconsistently when it did the comparison itself (observed) | If Stage 4 returns tables only, accept them and rely on Stage 5. Ask Stage 5 to use Canvas so the HTML previews. Keep the merge at the end of Stage 2 as code; if Gemini cannot offer a downloadable file, it prints the JSON (fallback) |
-| Microsoft 365 Copilot (work account) | The Analyst agent if your tenant offers it (Python and downloadable files); otherwise Copilot Chat with file upload | Reads only the first ~129,000 characters of a long PDF and says "preview truncated" (observed); refused a whole-file fragment as too large and said it could not create files (observed); truncated a pasted `database.json` (observed); tenant policy may block uploads (varies by organization) | Trim every report to the pages Stage 1 lists before uploading; Stage 2's three short parts per file; without file creation, run Stages 2 to 5 in one chat so nothing is copied; if no Python, use Stage 4's table fallback and Stage 5 |
+| Gemini | Gemini app with the most capable model on your plan; Canvas for Stage 5. Google AI Studio is an alternative with adjustable output length (unverified for your account) | May describe code rather than run it, or show tables instead of chart images (unverified). May not keep or offer files between turns (unverified). Compared overlapping years inconsistently when it did the comparison itself (observed) | If Stage 2 says NO CODE, let it print each part as a table and the whole database once at FINISH; save that as `database.json`, or run Stages 4 and 5 in the same chat. If Stage 4 returns tables only, accept them and rely on Stage 5 |
+| Microsoft 365 Copilot (work account) | Copilot Chat; it ran Python and offered downloads even on the Basic plan (observed). The Analyst agent, if your tenant offers it | Reads only the first ~129,000 characters of a long PDF (observed); loses an uploaded PDF after a few turns and asks for it again (observed); when parts were printed instead of saved, its end-of-stage merge wrote a nearly empty `database.json` and still reported success (observed); truncated a pasted `database.json` (observed) | Trim every report to the pages Stage 1 lists; attach the PDF again whenever it asks; check the COUNT lines after every part; attach the latest `database.json` if it loses the file; upload `database.json` in Stages 4 and 5 |
 | Consumer Copilot | Not recommended | Limited file handling for multi-file financial statements (unverified) | Run Stages 1–3 elsewhere and use Copilot only for Stage 5 if needed |
 
 ### Gemini and Copilot test order
@@ -696,7 +695,7 @@ A platform passes only if its JSON matches a hand-verified answer key. Without t
 1. **Build the answer key once.** Run Stages 1–3 on your strongest tool with one institution's documents, including at least two consecutive reports so the overlap check runs. Verify every value in the merged JSON against its cited page, not just the Stage 3 sample. Save it as `answer_key.json`.
 2. **Cover the code paths.** The rules branch on public vs. private and UPLOAD vs. SKIP. Test at least one GASB institution with unit data and one FASB institution with SKIP. A tool can pass one and fail the other.
 3. **Test the reading limit.** Give each platform one untrimmed full report. It passes if Stage 1 marks the file TRUNCATED and lists pages to keep, or if its last-page quote is correct. It fails if it claims to read the whole file and the quote is wrong.
-4. **Run each platform from a clean chat** with the same files and the same Stage 1 answers. Save each platform's fragments and merged JSON.
+4. **Run each platform from a clean chat** with the same files and the same Stage 1 answers. Save each platform's final `database.json`.
 5. **Compare** each merged JSON to the key with a text or JSON diff tool (VS Code's Compare, or a free online JSON diff).
 6. **Score** with the table below.
 

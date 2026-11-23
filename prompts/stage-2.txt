@@ -1,19 +1,22 @@
-STAGE 2 OF 5: EXTRACT EACH FILE INTO A JSON FRAGMENT, ONE FILE PER RESPONSE. Do not draw charts. Do not calculate CAGRs or ratios.
+STAGE 2 OF 5: BUILD database.json ONE SHORT PART AT A TIME. Do not draw charts. Do not calculate CAGRs or ratios.
 
 STAGE 1 DECISIONS: use the STAGE 1 DECISIONS block from this chat. If this is a new chat, I have pasted it here:
 <paste the STAGE 1 DECISIONS block here, or leave this line as is in the same chat>
 
-Never ask me to upload anything else. If something is missing, work with what you have, and
-never fill the gap with invented, sample, or example numbers.
+Never ask me to upload anything else, except as described under HOW THIS STAGE WORKS. If something
+is missing, work with what you have, and never fill the gap with invented, sample, or example numbers.
 Unit data comes only from my unit files. If Unit data is UPLOAD but no unit budget or actuals files
 are among the uploads, treat Unit data as SKIP and say so. Never invent a unit, never use an
 example or hypothetical department, and never use institution-wide numbers, or a share of them,
 in place of unit data.
 
-ONE FILE AT A TIME
-- Extract one file per response, in the order of the Stage 1 year map: newest institution report first, then older reports, then unit files. The bond rating report gets no fragment of its own; its three items go into the fragment of the most recent institution report.
+HOW THIS STAGE WORKS
+- You build one file, database.json, a little at a time. Each response extracts one PART of one source file and adds it to database.json by running code. You never retype earlier parts.
+- Order: the Stage 1 year map, newest institution report first, then older reports, then unit files. The bond rating report's three items go into the most recent institution report's PART 3.
+- Parts. Institution report: PART 1 = Section B (revenue lines, totals, tuition detail). PART 2 = Section D. PART 3 = Section F if this file needs it, plus this file's judgment calls and not-found items. Unit file: PART 1 = Section A. PART 2 = Sections C and E. PART 3 = this file's judgment calls and not-found items. If your response limit comfortably allows it, you may do more than one part of the same file in one response.
 - Before extracting a file, re-read the column headings on its statement pages. Each column's fiscal year comes from its printed heading, never from the file name. Label it "FY" plus the calendar year in which it ends.
-- Finish reading a section's source pages before writing that section's JSON.
+- Read a part's source pages before writing any of its numbers.
+- If you can no longer see the source file, say so in one line and ask me to attach it again. If database.json from your previous response is no longer available to your code, ask me to attach the latest database.json I downloaded. These are the only uploads you may ask for.
 
 ===== BEGIN ORIGINAL RULES (edited to record every year column) =====
 EXTRACTION RULES
@@ -110,7 +113,7 @@ expenses and net assets by class, kept separate. Never hospitals, health systems
 associations.
 - From the bond rating report, if provided: agency, rating, and median days cash on hand for that
 rating category.
-CHECKS (do these before writing the fragment; no one else will check these numbers before the
+CHECKS (do these before saving each part; no one else will check these numbers before the
 charts are made)
 - Each column's fiscal year was read from its printed heading, and each number comes from the
 column for that year.
@@ -121,36 +124,57 @@ nonoperating, in each column.
 each column.
 - Net asset classes add up to total net assets.
 - Unit lines add up to the stated totals in each unit year column.
-- Record each column's year-end date as printed. The merge step counts the years between them.
+- Record each column's year-end date as printed. The FINISH step counts the years between them.
 If a check fails, re-read the source and correct it. If it still fails, continue, and report it in the
-fragment's checks.
+database checks.
 ===== END ORIGINAL RULES =====
 
-OUTPUT FORMAT FOR EACH FILE: THREE SHORT PARTS
-Deliver each file's fragment in three parts, one part per response, so no response is long:
-- Institution report: PART 1 = B_inst_revenue. PART 2 = D_inst_expenses. PART 3 = F_balance_sheet (null if this file needs none), checks, judgment_calls, and not_found.
-- Unit file: PART 1 = A_unit_expenses. PART 2 = C_unit_revenue and E_unit_totals. PART 3 = checks, judgment_calls, and not_found.
-Every part is one complete, valid JSON object that starts with "kit_schema", "file", "meta", "columns", and "part" (1, 2, or 3), followed by that part's keys from the FRAGMENT SCHEMA below. Leave out sections that do not apply to this file. The merge step joins the parts of each file.
-1. Save each part as a downloadable file named fragment-<own column key>-part<n>.json (for example fragment-FY2025-part1.json), using your code tool or file-creation feature, and give me the link. Do not print the part in the chat when you can save it.
-2. If you cannot create files in this chat, print the part in one code block instead and keep going. The merge step will read it from this chat. Either way is acceptable. Never stop, shorten the extraction, or ask me how to proceed because of output size or file support.
-3. Every number is an object {"v": <whole-dollar integer, or null if NOT FOUND>, "src": "<page or sheet!row in this file>"}. Negative numbers stay negative. Never write thousands or millions.
-4. Every null value whose src is not "N/A" also appears in "not_found". "N/A" means the item does not apply to this institution; NOT FOUND means it applies but you could not find it.
-5. With PART 3, also print a CHECKS table for this file: Check | Column | PASS / FAIL / N/A | Detail (the two numbers compared). If Unit data is SKIP, mark unit checks N/A.
-6. If one part still will not fit in a response, stop at the end of a complete line, write "Type continue for the rest of PART <n>," and resume exactly where you stopped.
-7. After each part, write: "<file name>: PART <n> of 3 done. Type NEXT." After PART 3 of the last file, write: "All parts done. Type NEXT to build database.json." Then stop.
+EACH RESPONSE
+1. Extract this part's values for every column in the file: the file's own year and its comparative year, or, for a unit file, every year column.
+2. Run code (Python) that:
+   a. loads database.json if it exists, or starts it from the DATABASE SCHEMA below;
+   b. records this file in meta.files once, with its columns (key, fiscal year, type, role, year-end, heading as printed, heading page, restated);
+   c. writes this part's values following the MERGE RULES, replacing any earlier values from the same file and part and leaving everything else untouched;
+   d. re-runs every arithmetic CHECK the data now allows, for every column, and replaces this file's checks;
+   e. saves database.json and prints one COUNT line for every section and column in the whole database, for example "B FY2026: 17 lines, total included $9,391,347,000; comparatives from FY26.pdf: FY2025 17 lines".
+3. Give me the download link to the updated database.json.
+4. Print only: a short table of what this part added (Label | Category or bucket | Value for each column | src), the COUNT lines, and any FAIL check. Do not print the JSON.
+5. End with "<file name>: PART <n> of 3 saved to database.json. Type NEXT." After the last part of the last file, end with "All files extracted. Type FINISH to run the cross-checks." Then stop.
+If you cannot run code or save files at all, say NO CODE once. Then in each response print this part as the table in item 4, with every value and src, and keep going; at FINISH, build database.json from those tables following the same rules and print it once, in one code block.
+Never stop, shorten the extraction, or ask me how to proceed because of output size.
 
-FRAGMENT SCHEMA (angle brackets describe the value; they are not data)
+MERGE RULES (your code applies these every time it writes)
+1. Values for a column key come only from the file where that column's role is "own". Every comparative column value goes into "comparatives" for cross-checking and never replaces an own value. If two files have the same own column, keep the more recent file's values and put the other file's values into "comparatives".
+2. Match lines across files by label, ignoring case, punctuation, and "&" versus "and". The newest file's label, category, bucket, and included status apply to every year; record each difference in classification_differences.
+3. Every "src" starts with its file name, for example "FY25 audit.pdf: p. 23 [PDF 31]".
+4. Every number is {"v": <whole-dollar integer, or null if NOT FOUND>, "src": "<file name>: <page or sheet!row>"}. Negative numbers stay negative. Never write thousands or millions. Use null with src "N/A" for items that do not apply (for example, net_assets_private at a public institution). Every null whose src is not "N/A" also appears in not_found.
+
+WHEN I TYPE FINISH (run code)
+1. Unit columns that appear only as comparatives (for example, prior actuals shown in the budget file) are moved from "comparatives" into the unit sections and listed in meta.comparative_only_columns_used. Institution columns that appear only as comparatives are not used for charts.
+2. OVERLAP CHECK. For every comparative whose column also has an own value, compare the two: every line, every total, gross tuition, each Section B category (included lines) and each Section A or D bucket, and every Section E and F number present in both. Status: MATCH (identical); ROUNDING (differs by no more than half the rounding unit of the coarser file, for example $500 when one file is in thousands; for a category or bucket, that amount times its number of lines); MISMATCH; ONE_NOT_FOUND (one side null); NO_MATCHING_LINE (a line in one file has no matching label in the other). Save every result in overlap_checks.
+3. Chart years, unless I name others: earlier = oldest institution column used; later = newest. Unit: oldest = oldest actuals column; prior = newest actuals column before the budget year, or null if there is none besides oldest; budget = newest budget column. Years between two columns = months between their year-end dates ÷ 12. Fill meta.inst_years, unit_columns, year_ends, chart_years, and unit_chart_columns.
+4. Re-run every arithmetic CHECK on every column, and add one check per column that its year came from a printed heading.
+5. Save database.json, give me the link, and print the COUNT lines and a MERGE SUMMARY: each year used and its source file; years not used and why; chart years and years between; counts by overlap status; a table of every overlap row that is not MATCH or ROUNDING (Year | Item | Value used, with src | Comparative value, with src | Difference | Restated?); classification differences; every FAIL check. If no year appears in two files, say the cross-check could not run because the reports are not consecutive.
+6. End with: "Stage 2 complete. Download database.json. Review it with the Stage 3 checklist." Then stop.
+
+DATABASE SCHEMA (database.json; angle brackets describe the value; they are not data)
 {
- "kit_schema": "fragment-v2",
- "file": {"file": "<file name as uploaded>", "kind": "institution|unit", "what": "", "standard": "GASB|FASB|IFRS|other", "audited": <bool>, "units_in_source": "dollars|thousands|millions", "status": "OK|TRUNCATED|UNREADABLE", "last_page_seen": "<printed page [PDF page]>"},
+ "kit_schema": "database-v2",
  "meta": {
   "institution": "<name>", "unit": "<name or null>",
   "unit_data_requested": "UPLOAD|SKIP", "unit_data_applied": "UPLOAD|SKIP", "unit_data_reason": "<text>",
-  "basis": "GASB|FASB_case_a|FASB_case_b|IFRS|other", "currency": "<ISO code>",
-  "page_convention": "printed page [PDF page of the uploaded file]", "balance_sheet_years": "LATEST|ALL",
-  "user_decisions": [{"question": "", "answer": ""}]
+  "basis": "GASB|FASB_case_a|FASB_case_b|IFRS|other", "currency": "<ISO code>", "audited": <true only if every institution file is audited>,
+  "page_convention": "file name: printed page [PDF page of the uploaded file]", "balance_sheet_years": "LATEST|ALL",
+  "user_decisions": [{"question": "", "answer": ""}],
+  "files": [{"file": "<file name as uploaded>", "kind": "institution|unit", "what": "", "standard": "GASB|FASB|IFRS|other", "audited": <bool>, "units_in_source": "dollars|thousands|millions", "status": "OK|TRUNCATED|UNREADABLE", "last_page_seen": "<printed page [PDF page]>",
+   "columns": [{"key": "<institution: FY label, e.g. FY2025; unit: FY label plus A for actuals or B for budget, e.g. FY2025A, FY2026B>", "fiscal_year": "<FY label>", "type": "audited|actual|budget", "role": "own|comparative", "year_end": "<YYYY-MM-DD>", "heading_as_printed": "<column heading, word for word>", "heading_src": "<page>", "restated": <bool>, "used_as_primary": <bool>}]}],
+  "inst_years": ["<institution column keys used, oldest first>"],
+  "unit_columns": [{"key": "", "fiscal_year": "", "type": "actual|budget"}],
+  "year_ends": {"<column key>": "<YYYY-MM-DD>"},
+  "chart_years": {"earlier": "<key>", "later": "<key>", "years_between": <number>},
+  "unit_chart_columns": {"oldest": "<key or null>", "prior": "<key or null>", "budget": "<key or null>", "years_between_oldest_and_budget": <number or null>},
+  "comparative_only_columns_used": ["<key>"]
  },
- "columns": [{"key": "<institution: FY label, e.g. FY2025; unit: FY label plus A for actuals or B for budget, e.g. FY2025A, FY2026B>", "fiscal_year": "<FY label>", "type": "audited|actual|budget", "role": "own|comparative", "year_end": "<YYYY-MM-DD>", "heading_as_printed": "<column heading, word for word>", "heading_src": "<page>", "restated": <bool>}],
  "A_unit_expenses": {
   "categories": ["<current-budget category names, max 8>"],
   "lines": [{"label": "<as labeled>", "category": "", "bucket": "PEOPLE|SPACE|STUFF", "values": {"<column key>": <num>}}],
@@ -191,37 +215,12 @@ FRAGMENT SCHEMA (angle brackets describe the value; they are not data)
   "foundation": {"present": <bool>, "name": "", "total_expenses": <num>, "without_donor_restrictions": <num>, "with_donor_held_in_perpetuity": <num>, "with_donor_not_in_perpetuity": <num>},
   "rating": {"provided": <bool>, "agency": "", "rating": "", "median_days_cash": <num>}
  }},
- "checks": [{"check": "", "column": "<column key>", "status": "PASS|FAIL|N/A", "detail": ""}],
- "judgment_calls": ["<excluded revenue lines and why; lines that mix buckets; placement of amortization and scholarship allowances>"],
- "not_found": [{"section": "", "column": "<column key>", "item": ""}]
-}
-<num> means {"v": integer or null, "src": "page or sheet!row"}. Use null for <num> fields that do not apply (for example, net_assets_private at a public institution) and set src to "N/A". Every "values", "totals", and other object keyed by "<column key>" has one entry for each column listed in "columns" for this file.
-
-WHEN I TYPE NEXT AFTER THE LAST FRAGMENT: BUILD database.json BY RUNNING CODE
-Write and run code (Python) that reads every part (the saved files, or the code blocks you printed in this chat), joins the parts of each file into one fragment, and writes database.json. Do not retype numbers by hand. If saved part files are no longer available to your code, read the parts from this chat; if neither works, ask me to upload the part files I downloaded. That is the only upload you may ask for.
-MERGE RULES
-1. Each column key takes its values from the file where that column's role is "own". If two files have the same own column, use the more recent file and cross-check the other.
-2. An institution column that appears only as a comparative column is not used; list it in the MERGE SUMMARY. A unit column that appears only inside another unit file (for example, prior actuals shown in the budget file) is used.
-3. Match lines across files by label, ignoring case, punctuation, and "&" versus "and". Use the newest file's label, category, bucket, and included status for every year, and list every line whose category, bucket, or included status differs between files in classification_differences.
-4. Chart years, unless I name others: earlier = oldest institution column used; later = newest. Unit: oldest = oldest actuals column; prior = newest actuals column before the budget year, or null if there is none besides oldest; budget = newest budget column. Years between two columns = months between their year-end dates ÷ 12.
-5. OVERLAP CHECK. Wherever a column also appears in a second file (as its comparative column, or as a second own column), compare the second file's value with the value used, for every line, every total, gross tuition, each Section B category (included lines) and each Section A or D bucket, and every Section E and F number present in both. Status: MATCH (identical); ROUNDING (differs by no more than half the rounding unit of the coarser file, for example $500 when one file is in thousands; for a category or bucket, that amount times its number of lines); MISMATCH; ONE_NOT_FOUND (one side null); NO_MATCHING_LINE (a line in one file has no matching label in the other).
-6. Re-run the arithmetic CHECKS on the merged values for every column, and add one check per column that its year came from a printed heading.
-7. Every "src" in database.json starts with its file name, for example "FY25 audit.pdf: p. 23 [PDF 31]".
-THEN
-- Save database.json as a downloadable file and give me the link. Do not print it in the chat. If you cannot create files, do not print it either; write "database.json is ready in this chat. Run Stages 4 and 5 in this same chat." Print it only if I ask, in code blocks labeled "database.json PART <n> OF <N>" that join into one file.
-- Print a MERGE SUMMARY: each year used and its source file; years not used and why; chart years and years between; counts by overlap status; a table of every overlap row that is not MATCH or ROUNDING (Year | Item | Value used, with src | Second file's value, with src | Difference | Restated?); classification differences; every FAIL check.
-- If you could not run code, merge by following the same rules yourself and put "MERGED WITHOUT CODE: check totals carefully" at the top of the MERGE SUMMARY.
-- End with: "Stage 2 complete. Download database.json. Review it with the Stage 3 checklist." Then stop.
-
-DATABASE SCHEMA (database.json)
-{
- "kit_schema": "database-v2",
- "meta": <the fragment "meta" fields, plus: "audited": <true only if every institution file is audited>, "files": [<each fragment's "file" object, with its "columns" list; each column adds "used_as_primary": <bool>>], "inst_years": ["<institution column keys used, oldest first>"], "unit_columns": [{"key": "", "fiscal_year": "", "type": "actual|budget"}], "year_ends": {"<column key>": "<YYYY-MM-DD>"}, "chart_years": {"earlier": "<key>", "later": "<key>", "years_between": <number>}, "unit_chart_columns": {"oldest": "<key or null>", "prior": "<key or null>", "budget": "<key or null>", "years_between_oldest_and_budget": <number or null>}, "comparative_only_columns_used": ["<key>"]>,
- "A_unit_expenses", "B_inst_revenue", "C_unit_revenue", "D_inst_expenses", "E_unit_totals", "F_balance_sheet": <same shapes as in the FRAGMENT SCHEMA, with one entry for each column key used, each taken from that column's primary file; a section with no data is null>,
- "overlap_checks": [{"year": "<key>", "section": "", "item": "", "status": "MATCH|ROUNDING|MISMATCH|ONE_NOT_FOUND|NO_MATCHING_LINE", "difference": <number or null>, "used": <num>, "second": <num>, "second_file": "", "restated": <bool>}],
+ "comparatives": [{"file": "", "column": "<key>", "restated": <bool>, "section": "", "item": "<line label, or field such as total_included, tuition.gross, or F.cash_and_equivalents>", "value": <num>}],
+ "overlap_checks": [{"year": "<key>", "section": "", "item": "", "status": "MATCH|ROUNDING|MISMATCH|ONE_NOT_FOUND|NO_MATCHING_LINE", "difference": <number or null>, "used": <num>, "comparative": <num>, "comparative_file": "", "restated": <bool>}],
  "overrides": [{"year": "<key>", "item": "", "replaced": <num>, "with": <num>}],
  "classification_differences": [{"section": "", "line": "", "attribute": "", "used": "", "used_from": "<file>", "other": "", "other_from": "<file>"}],
- "checks": [{"source": "<file name or merge>", "check": "", "column": "<key>", "status": "PASS|FAIL|N/A", "detail": ""}],
- "judgment_calls": ["<file name>: <text>"],
+ "checks": [{"source": "<file name or FINISH>", "check": "", "column": "<key>", "status": "PASS|FAIL|N/A", "detail": "<the two numbers compared>"}],
+ "judgment_calls": ["<file name>: <excluded revenue lines and why; lines that mix buckets; placement of amortization and scholarship allowances>"],
  "not_found": [{"file": "", "section": "", "column": "<key>", "item": ""}]
 }
+<num> means {"v": integer or null, "src": "file name: page or sheet!row"}. A section with no data is null. Every "values", "totals", and other object keyed by "<column key>" holds own values only.

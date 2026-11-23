@@ -1,5 +1,5 @@
-STAGE 3 CORRECTIONS. Apply only the changes below. Update the affected fragment parts and re-run their CHECKS, then rebuild database.json with the same merge code and MERGE RULES. Save the new database.json as a downloadable file and give me the link (if you cannot create files, keep it in this chat as before), and print the MERGE SUMMARY again. Do not change any other value.
+STAGE 3 CORRECTIONS. Apply only the changes below to database.json by running code (if you no longer have it, ask me to attach the latest copy). Then repeat the FINISH steps: re-run the checks and the overlap check, save database.json, give me the download link, and print the COUNT lines and the MERGE SUMMARY. Do not change any other value.
 
-1. <field path, e.g. D_inst_expenses.lines["Supplies and services"].values.FY2025 in fragment-FY2025.json> should be <amount> per <page>.
-2. USE RESTATED: <item, e.g. B_inst_revenue line "Federal grants and contracts">, <year>. Use the later report's comparative value for that year and record it in overrides.
+1. <field path, e.g. D_inst_expenses.lines["Supplies and services"].values.FY2025> should be <amount> per <file name and page>.
+2. USE RESTATED: <item, e.g. B_inst_revenue line "Federal grants and contracts">, <year>. Use the later report's comparative value for that year from "comparatives" and record it in overrides.
 3. CHART YEARS: earlier <FY____>, later <FY____>.

@@ -3,7 +3,7 @@ STAGE 1 OF 5: FILE INVENTORY, COVERAGE CHECK, AND QUESTIONS. Do not extract numb
 My institution: ________ My unit: ________
 Unit data: ________ (write UPLOAD or SKIP)
 
-This is the first of five stages. Later stages will extract each file into a JSON fragment, combine the fragments into one database, draw 12 charts, and build an HTML dashboard. In this stage you only identify files, prove what you can read, and ask me the decisions you need.
+This is the first of five stages. Later stages will extract each file into one JSON database, draw 12 charts, and build an HTML dashboard. In this stage you only identify files, prove what you can read, and ask me the decisions you need.
 
 WHAT I'VE PROVIDED
 - Audited financial statements for two or more of my institution's fiscal years. Each report usually
@@ -34,7 +34,7 @@ blank, use the names in the files.
    - Liquidity note (private only)
    - Discretely presented foundation statements, if any (public only)
    For each unit file, list the pages or sheets with the budget or actuals tables.
-4. YEAR MAP. Print a table: File name | What it is | Own year (the year the file covers) | Comparative year | Column headings as printed, with page | Year-end | Units | Standard | Audited? | Status (OK, TRUNCATED, or UNREADABLE). Mark a comparative column "restated" if its heading says so. Then list each fiscal year found, the file that covers it (its primary source), and any other file that also shows it as a comparative column. Those overlaps will be cross-checked later.
+4. YEAR MAP. Print a table: File name | What it is | Own year (the year the file covers) | Comparative year | Column headings as printed, with page | Year-end | Units | Standard | Audited? | Status (OK, TRUNCATED, or UNREADABLE). Mark a comparative column "restated" if its heading says so. Then list each fiscal year found, the file that covers it (its primary source), and any other file that also shows it as a comparative column. Those overlaps will be cross-checked later. If no year appears in two files, say that the cross-check will not run because the reports are not consecutive.
 5. IF ANY FILE IS TRUNCATED OR UNREADABLE, print PAGES TO KEEP for that file:
    - Use the file's table of contents to find the printed page ranges of the basic financial statements and of each note in the coverage list, and convert them to PDF page ranges.
    - List what can be removed, with page ranges: transmittal letters, management's discussion and analysis, required supplementary information schedules, combining and supplementary schedules, the statistical section, and single audit or federal awards reports.
@@ -47,7 +47,7 @@ blank, use the names in the files.
 9. Ask me only the questions below that apply to these files, numbered, one line each, with your proposed default answer in brackets. Ask nothing else.
    a. Private (FASB): does the statement of activities present an operating measure (case a) or not (case b)? State which you found and ask me to confirm.
    b. Public (GASB): is there a discretely presented foundation that holds gifts and endowment? Confirm it should be included where the spec says.
-   c. Are hospital or health system amounts in separate columns? Confirm you will use academic columns only.
+   c. Are hospital or health system amounts in separate columns? Confirm you will use academic columns only. If a hospital or health system is consolidated with no separate columns, say so, give patient care revenue as a share of total operating revenue, and confirm that the charts will include it.
    d. Does the state pay pension or OPEB contributions on the institution's behalf (on-behalf payments)? If found, confirm exclusion.
    e. Scholarship allowances: are they combined with housing or other revenue? Is a tuition-only portion disclosed?
    f. Unit budget: list the current budget's expense categories and revenue categories as you found them. If there are more than 8, propose which to combine.
