@@ -121,19 +121,19 @@ nonoperating, in each column.
 each column.
 - Net asset classes add up to total net assets.
 - Unit lines add up to the stated totals in each unit year column.
-- Record each column's year-end date as printed. The merge page counts the years between them.
+- Record each column's year-end date as printed. The merge step counts the years between them.
 If a check fails, re-read the source and correct it. If it still fails, continue, and report it in the
 fragment's checks.
 ===== END ORIGINAL RULES =====
 
 OUTPUT FORMAT FOR EACH FILE
 1. Print a CHECKS table for this file: Check | Column | PASS / FAIL / N/A | Detail (the two numbers compared). If Unit data is SKIP, mark unit checks N/A.
-2. Then print ONE JSON fragment for this file in a code block, following the schema below exactly. Use the key names shown. Do not add commentary inside the JSON.
+2. Then build ONE JSON fragment for this file, following the FRAGMENT SCHEMA below exactly, and save it as a downloadable file named fragment-<own column key>.json (for example fragment-FY2025.json) using your code tool or file-creation feature. Give me the download link. Do not print the fragment in the chat. Use the key names shown and add no commentary inside the JSON. Only if you cannot create files: print the fragment in one code block and say FILES NOT SUPPORTED.
 3. Every number is an object {"v": <whole-dollar integer, or null if NOT FOUND>, "src": "<page or sheet!row in this file>"}. Negative numbers stay negative. Never write thousands or millions.
 4. Every null value whose src is not "N/A" also appears in "not_found". "N/A" means the item does not apply to this institution; NOT FOUND means it applies but you could not find it.
 5. Sections that do not apply to this file are null: an institution report has A, C, and E null; a unit file has B, D, and F null.
-6. If the fragment will not fit in one response, stop at the end of a complete line, write "Type continue for the rest of the JSON," and resume exactly where you stopped. The merge page joins the parts if I save them as separate files.
-7. After the fragment, write: "Fragment <n> of <total> complete: <file name>. Save it as fragment-<own column key>.json. Type NEXT for the next file." After the last file, write: "All fragments complete. Load every fragment into the merge page, then review with the Stage 3 checklist." Then stop.
+6. If you are printing the fragment because you cannot create files and it will not fit in one response, stop at the end of a complete line, write "Type continue for the rest of the JSON," and resume exactly where you stopped.
+7. After the fragment, write: "Fragment <n> of <total> saved: fragment-<own column key>.json (<file name>). Type NEXT for the next file." After the last file, write: "All fragments saved. Type NEXT to build database.json." Then stop.
 
 FRAGMENT SCHEMA (angle brackets describe the value; they are not data)
 {
@@ -192,3 +192,32 @@ FRAGMENT SCHEMA (angle brackets describe the value; they are not data)
  "not_found": [{"section": "", "column": "<column key>", "item": ""}]
 }
 <num> means {"v": integer or null, "src": "page or sheet!row"}. Use null for <num> fields that do not apply (for example, net_assets_private at a public institution) and set src to "N/A". Every "values", "totals", and other object keyed by "<column key>" has one entry for each column listed in "columns" for this file.
+
+WHEN I TYPE NEXT AFTER THE LAST FRAGMENT: BUILD database.json BY RUNNING CODE
+Write and run code (Python) that reads every fragment file and writes database.json. Do not retype numbers by hand. If the fragment files from earlier responses are no longer available to your code, ask me to upload the fragment files I downloaded; this is the only upload you may ask for.
+MERGE RULES
+1. Each column key takes its values from the file where that column's role is "own". If two files have the same own column, use the more recent file and cross-check the other.
+2. An institution column that appears only as a comparative column is not used; list it in the MERGE SUMMARY. A unit column that appears only inside another unit file (for example, prior actuals shown in the budget file) is used.
+3. Match lines across files by label, ignoring case, punctuation, and "&" versus "and". Use the newest file's label, category, bucket, and included status for every year, and list every line whose category, bucket, or included status differs between files in classification_differences.
+4. Chart years, unless I name others: earlier = oldest institution column used; later = newest. Unit: oldest = oldest actuals column; prior = newest actuals column before the budget year, or null if there is none besides oldest; budget = newest budget column. Years between two columns = months between their year-end dates ÷ 12.
+5. OVERLAP CHECK. Wherever a column also appears in a second file (as its comparative column, or as a second own column), compare the second file's value with the value used, for every line, every total, gross tuition, each Section B category (included lines) and each Section A or D bucket, and every Section E and F number present in both. Status: MATCH (identical); ROUNDING (differs by no more than half the rounding unit of the coarser file, for example $500 when one file is in thousands; for a category or bucket, that amount times its number of lines); MISMATCH; ONE_NOT_FOUND (one side null); NO_MATCHING_LINE (a line in one file has no matching label in the other).
+6. Re-run the arithmetic CHECKS on the merged values for every column, and add one check per column that its year came from a printed heading.
+7. Every "src" in database.json starts with its file name, for example "FY25 audit.pdf: p. 23 [PDF 31]".
+THEN
+- Save database.json as a downloadable file and give me the link. Do not print it in the chat. Only if you cannot create files: print it in one code block, split as in OUTPUT FORMAT item 6, and say FILES NOT SUPPORTED.
+- Print a MERGE SUMMARY: each year used and its source file; years not used and why; chart years and years between; counts by overlap status; a table of every overlap row that is not MATCH or ROUNDING (Year | Item | Value used, with src | Second file's value, with src | Difference | Restated?); classification differences; every FAIL check.
+- If you could not run code, merge by following the same rules yourself and put "MERGED WITHOUT CODE: check totals carefully" at the top of the MERGE SUMMARY.
+- End with: "Stage 2 complete. Download database.json. Review it with the Stage 3 checklist." Then stop.
+
+DATABASE SCHEMA (database.json)
+{
+ "kit_schema": "database-v2",
+ "meta": <the fragment "meta" fields, plus: "audited": <true only if every institution file is audited>, "files": [<each fragment's "file" object, with its "columns" list; each column adds "used_as_primary": <bool>>], "inst_years": ["<institution column keys used, oldest first>"], "unit_columns": [{"key": "", "fiscal_year": "", "type": "actual|budget"}], "year_ends": {"<column key>": "<YYYY-MM-DD>"}, "chart_years": {"earlier": "<key>", "later": "<key>", "years_between": <number>}, "unit_chart_columns": {"oldest": "<key or null>", "prior": "<key or null>", "budget": "<key or null>", "years_between_oldest_and_budget": <number or null>}, "comparative_only_columns_used": ["<key>"]>,
+ "A_unit_expenses", "B_inst_revenue", "C_unit_revenue", "D_inst_expenses", "E_unit_totals", "F_balance_sheet": <same shapes as in the FRAGMENT SCHEMA, with one entry for each column key used, each taken from that column's primary file; a section with no data is null>,
+ "overlap_checks": [{"year": "<key>", "section": "", "item": "", "status": "MATCH|ROUNDING|MISMATCH|ONE_NOT_FOUND|NO_MATCHING_LINE", "difference": <number or null>, "used": <num>, "second": <num>, "second_file": "", "restated": <bool>}],
+ "overrides": [{"year": "<key>", "item": "", "replaced": <num>, "with": <num>}],
+ "classification_differences": [{"section": "", "line": "", "attribute": "", "used": "", "used_from": "<file>", "other": "", "other_from": "<file>"}],
+ "checks": [{"source": "<file name or merge>", "check": "", "column": "<key>", "status": "PASS|FAIL|N/A", "detail": ""}],
+ "judgment_calls": ["<file name>: <text>"],
+ "not_found": [{"file": "", "section": "", "column": "<key>", "item": ""}]
+}
