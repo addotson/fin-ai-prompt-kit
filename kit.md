@@ -4,15 +4,15 @@ Nov 23, 2026 · @Aaron
 
 ## How to use this kit
 
-Run five stages in order, using only the AI tool and your files. Stage 2 extracts each uploaded file into a JSON fragment, then merges them into one `database.json` by running code. Stages 4 and 5 read that file. Every JSON the tool creates is a file you download, not text you copy, and Stages 4 and 5 read `database.json` as an upload, not a paste. No stage after Stage 2 depends on the tool re-reading your PDFs or remembering a long conversation.
+Run five stages in order, using only the AI tool and your files. Stage 2 extracts each uploaded file into a JSON fragment, then merges them into one `database.json` by running code. Stages 4 and 5 read that file. Every JSON the tool creates is a file you download, not text you copy, and Stages 4 and 5 read `database.json` as an upload, not a paste. If your tool cannot create files, keep Stages 1 to 5 in one chat and it reads everything from the chat, so you still copy nothing. No stage after Stage 2 depends on the tool re-reading your PDFs or remembering a long conversation.
 
 1. **Stage 1, inventory.** Upload all files, paste the Stage 1 prompt. The tool proves how much of each file it can read, maps every fiscal year from the column headings, and asks only the decisions the spec leaves open. If a file is too long for the tool, it lists the pages to keep instead; trim the PDF (see Trimming a PDF) and start again. Answer the questions, then save the STAGE 1 DECISIONS block it prints.
-2. **Stage 2, extraction and merge.** Paste the Stage 2 prompt. The tool extracts one file per response and saves each as a downloadable fragment; type NEXT after each. After the last file, type NEXT once more: the tool merges the fragments with code, cross-checks every year that appears in two reports, and gives you `database.json` to download with a MERGE SUMMARY.
+2. **Stage 2, extraction and merge.** Paste the Stage 2 prompt. The tool extracts each file in three short parts, one part per response, and saves each part as a downloadable file (or, if it cannot create files, prints it and keeps going); type NEXT after each. After the last part, type NEXT once more: the tool merges everything with code, cross-checks every year that appears in two reports, and gives you `database.json` to download with a MERGE SUMMARY.
 3. **Stage 3, review.** Spot-check the MERGE SUMMARY and the JSON against your PDFs using the checklist. Send corrections, restated-figure choices, or different chart years with the correction prompt; the tool rebuilds `database.json`. Download the final file.
-4. **Stage 4, static charts.** Upload `database.json` and paste the Stage 4 prompt. The tool draws the 12 matplotlib charts and the data summary.
-5. **Stage 5, dashboard.** Upload `database.json` and paste the Stage 5 prompt. The tool writes one interactive HTML file for you to download. Save it as `dashboard.html` and open it in a browser.
+4. **Stage 4, static charts.** Upload `database.json` and paste the Stage 4 prompt. If your tool could not create files, run Stage 4 in the same chat as Stage 2 instead, with no upload. The tool draws the 12 matplotlib charts and the data summary.
+5. **Stage 5, dashboard.** Upload `database.json` (or stay in the same chat) and paste the Stage 5 prompt. The tool writes one interactive HTML file for you to download. Save it as `dashboard.html` and open it in a browser.
 
-Rules for every platform: start a new chat for Stage 1; keep Stages 1–3 in the same chat; Stages 4 and 5 can run in a new chat, or a different tool, because they only need `database.json`. Download every file the tool offers as soon as it appears; chat file links can expire. Fill in the three blanks at the top of Stage 1 before sending.
+Rules for every platform: start a new chat for Stage 1; keep Stages 1–3 in the same chat; Stages 4 and 5 can run in a new chat, or a different tool, because they only need `database.json`; if your tool could not create files, keep them in the same chat. Download every file the tool offers as soon as it appears; chat file links can expire. Fill in the three blanks at the top of Stage 1 before sending.
 
 You can upload more than two years of audited statements. Every report adds its own year, and its comparative column becomes a cross-check on the year before. The charts compare the oldest and newest years by default; name different years in the Stage 3 correction prompt.
 
@@ -32,7 +32,7 @@ The chart specifications, Sections A–F, checks, and CAGR formula come from the
 | "Use only the column for the fiscal year that file covers" | Kept as the primary value; the comparative column is also recorded, and every year is read from the printed column heading | The overlap becomes a cross-check; file names can be wrong |
 | Two institution years and three unit years, fixed | Any number of years; the charts compare the oldest and newest unless you name others in Stage 3 | Use more data when it is provided |
 | The tool compares and totals across files | The merge at the end of Stage 2 runs as code, following fixed rules written into the prompt | Tools compared overlapping years inconsistently when they did it freehand |
-| JSON printed in chat, then copied and pasted | Every JSON is a downloadable file; Stages 4 and 5 read `database.json` as an upload and confirm it loaded completely | Copilot truncated a pasted `database.json` and stopped (observed) |
+| JSON printed in chat, then copied and pasted | Every JSON is a downloadable file, delivered in short parts; Stages 4 and 5 read `database.json` as an upload, or from the same chat, and confirm it loaded completely | Copilot truncated a pasted `database.json` (observed), and refused a whole-file fragment as too large (observed) |
 | Section F: most recent audited year | Optionally every year (Stage 1 question j) | Balance-sheet overlap check, at the cost of longer extractions |
 
 The DATA SUMMARY still prints at the end of Stage 4. Stage 5 repeats it inside the dashboard.
@@ -116,7 +116,7 @@ Printed page numbers stay the same after trimming. PDF page numbers in later cit
 
 ## Stage 2 prompt: extraction to JSON fragments
 
-Paste after Stage 1, in the same chat. The tool saves each fragment as a downloadable file; download each one, so you can restart without re-extracting if the chat fails. After the last file, type NEXT once more and the tool builds `database.json`. If the tool loses track, start a new chat, upload the remaining source file and any fragments you already have, and paste Stage 2 with the STAGE 1 DECISIONS block filled in. The rules between the BEGIN and END markers are the original prompt, edited only to record every year column.
+Paste after Stage 1, in the same chat. Each file comes back in three short parts, one per response. If the tool can create files, download each part as it appears, so you can restart without re-extracting. If it cannot, it prints each part in a code block and carries on; you do not need to copy anything, because the merge reads the parts from the chat. After the last part, type NEXT once more and the tool builds `database.json`. If the tool loses track, start a new chat, upload the remaining source file and any parts you already have, and paste Stage 2 with the STAGE 1 DECISIONS block filled in. The rules between the BEGIN and END markers are the original prompt, edited only to record every year column.
 
 ```text
 STAGE 2 OF 5: EXTRACT EACH FILE INTO A JSON FRAGMENT, ONE FILE PER RESPONSE. Do not draw charts. Do not calculate CAGRs or ratios.
@@ -247,14 +247,18 @@ If a check fails, re-read the source and correct it. If it still fails, continue
 fragment's checks.
 ===== END ORIGINAL RULES =====
 
-OUTPUT FORMAT FOR EACH FILE
-1. Print a CHECKS table for this file: Check | Column | PASS / FAIL / N/A | Detail (the two numbers compared). If Unit data is SKIP, mark unit checks N/A.
-2. Then build ONE JSON fragment for this file, following the FRAGMENT SCHEMA below exactly, and save it as a downloadable file named fragment-<own column key>.json (for example fragment-FY2025.json) using your code tool or file-creation feature. Give me the download link. Do not print the fragment in the chat. Use the key names shown and add no commentary inside the JSON. Only if you cannot create files: print the fragment in one code block and say FILES NOT SUPPORTED.
+OUTPUT FORMAT FOR EACH FILE: THREE SHORT PARTS
+Deliver each file's fragment in three parts, one part per response, so no response is long:
+- Institution report: PART 1 = B_inst_revenue. PART 2 = D_inst_expenses. PART 3 = F_balance_sheet (null if this file needs none), checks, judgment_calls, and not_found.
+- Unit file: PART 1 = A_unit_expenses. PART 2 = C_unit_revenue and E_unit_totals. PART 3 = checks, judgment_calls, and not_found.
+Every part is one complete, valid JSON object that starts with "kit_schema", "file", "meta", "columns", and "part" (1, 2, or 3), followed by that part's keys from the FRAGMENT SCHEMA below. Leave out sections that do not apply to this file. The merge step joins the parts of each file.
+1. Save each part as a downloadable file named fragment-<own column key>-part<n>.json (for example fragment-FY2025-part1.json), using your code tool or file-creation feature, and give me the link. Do not print the part in the chat when you can save it.
+2. If you cannot create files in this chat, print the part in one code block instead and keep going. The merge step will read it from this chat. Either way is acceptable. Never stop, shorten the extraction, or ask me how to proceed because of output size or file support.
 3. Every number is an object {"v": <whole-dollar integer, or null if NOT FOUND>, "src": "<page or sheet!row in this file>"}. Negative numbers stay negative. Never write thousands or millions.
 4. Every null value whose src is not "N/A" also appears in "not_found". "N/A" means the item does not apply to this institution; NOT FOUND means it applies but you could not find it.
-5. Sections that do not apply to this file are null: an institution report has A, C, and E null; a unit file has B, D, and F null.
-6. If you are printing the fragment because you cannot create files and it will not fit in one response, stop at the end of a complete line, write "Type continue for the rest of the JSON," and resume exactly where you stopped.
-7. After the fragment, write: "Fragment <n> of <total> saved: fragment-<own column key>.json (<file name>). Type NEXT for the next file." After the last file, write: "All fragments saved. Type NEXT to build database.json." Then stop.
+5. With PART 3, also print a CHECKS table for this file: Check | Column | PASS / FAIL / N/A | Detail (the two numbers compared). If Unit data is SKIP, mark unit checks N/A.
+6. If one part still will not fit in a response, stop at the end of a complete line, write "Type continue for the rest of PART <n>," and resume exactly where you stopped.
+7. After each part, write: "<file name>: PART <n> of 3 done. Type NEXT." After PART 3 of the last file, write: "All parts done. Type NEXT to build database.json." Then stop.
 
 FRAGMENT SCHEMA (angle brackets describe the value; they are not data)
 {
@@ -315,7 +319,7 @@ FRAGMENT SCHEMA (angle brackets describe the value; they are not data)
 <num> means {"v": integer or null, "src": "page or sheet!row"}. Use null for <num> fields that do not apply (for example, net_assets_private at a public institution) and set src to "N/A". Every "values", "totals", and other object keyed by "<column key>" has one entry for each column listed in "columns" for this file.
 
 WHEN I TYPE NEXT AFTER THE LAST FRAGMENT: BUILD database.json BY RUNNING CODE
-Write and run code (Python) that reads every fragment file and writes database.json. Do not retype numbers by hand. If the fragment files from earlier responses are no longer available to your code, ask me to upload the fragment files I downloaded; this is the only upload you may ask for.
+Write and run code (Python) that reads every part (the saved files, or the code blocks you printed in this chat), joins the parts of each file into one fragment, and writes database.json. Do not retype numbers by hand. If saved part files are no longer available to your code, read the parts from this chat; if neither works, ask me to upload the part files I downloaded. That is the only upload you may ask for.
 MERGE RULES
 1. Each column key takes its values from the file where that column's role is "own". If two files have the same own column, use the more recent file and cross-check the other.
 2. An institution column that appears only as a comparative column is not used; list it in the MERGE SUMMARY. A unit column that appears only inside another unit file (for example, prior actuals shown in the budget file) is used.
@@ -325,7 +329,7 @@ MERGE RULES
 6. Re-run the arithmetic CHECKS on the merged values for every column, and add one check per column that its year came from a printed heading.
 7. Every "src" in database.json starts with its file name, for example "FY25 audit.pdf: p. 23 [PDF 31]".
 THEN
-- Save database.json as a downloadable file and give me the link. Do not print it in the chat. Only if you cannot create files: print it in one code block, split as in OUTPUT FORMAT item 6, and say FILES NOT SUPPORTED.
+- Save database.json as a downloadable file and give me the link. Do not print it in the chat. If you cannot create files, do not print it either; write "database.json is ready in this chat. Run Stages 4 and 5 in this same chat." Print it only if I ask, in code blocks labeled "database.json PART <n> OF <N>" that join into one file.
 - Print a MERGE SUMMARY: each year used and its source file; years not used and why; chart years and years between; counts by overlap status; a table of every overlap row that is not MATCH or ROUNDING (Year | Item | Value used, with src | Second file's value, with src | Difference | Restated?); classification differences; every FAIL check.
 - If you could not run code, merge by following the same rules yourself and put "MERGED WITHOUT CODE: check totals carefully" at the top of the MERGE SUMMARY.
 - End with: "Stage 2 complete. Download database.json. Review it with the Stage 3 checklist." Then stop.
@@ -364,7 +368,7 @@ This stage is you, not the tool. It takes about 15 to 30 minutes and is the main
 Correction prompt, same chat as Stage 2. Delete the numbered lines you do not need:
 
 ```text
-STAGE 3 CORRECTIONS. Apply only the changes below. Update the affected fragment files and re-run their CHECKS, then rebuild database.json with the same merge code and MERGE RULES. Save the new database.json as a downloadable file, give me the link, and print the MERGE SUMMARY again. Do not change any other value.
+STAGE 3 CORRECTIONS. Apply only the changes below. Update the affected fragment parts and re-run their CHECKS, then rebuild database.json with the same merge code and MERGE RULES. Save the new database.json as a downloadable file and give me the link (if you cannot create files, keep it in this chat as before), and print the MERGE SUMMARY again. Do not change any other value.
 
 1. <field path, e.g. D_inst_expenses.lines["Supplies and services"].values.FY2025 in fragment-FY2025.json> should be <amount> per <page>.
 2. USE RESTATED: <item, e.g. B_inst_revenue line "Federal grants and contracts">, <year>. Use the later report's comparative value for that year and record it in overrides.
@@ -380,7 +384,7 @@ Works in the same chat or a new one. Upload `database.json` (rename it `database
 ```text
 STAGE 4 OF 5: DRAW THE 12 CHARTS FROM THE JSON DATABASE BELOW.
 
-DATA SOURCE: Use only the JSON database in the file I uploaded with this message, database.json or database.txt (kit_schema "database-v2", built at the end of Stage 2). Before drawing anything, load the whole file by running code and print one line: the institution, meta.inst_years, meta.chart_years, and the number of lines in Sections B and D. If the file does not load as complete JSON, or you can see only part of it, stop and say so; do not draw from a partial file. Do not re-read the uploaded financial statements for numbers. Do not change any value in the JSON. Each "v" is whole dollars; each "src" is the citation, starting with the file name. Section names in the rules map to JSON keys: Section A = A_unit_expenses, B = B_inst_revenue, C = C_unit_revenue, D = D_inst_expenses, E = E_unit_totals, F = F_balance_sheet. Institution and unit names, basis (public GASB vs. private FASB), audited status, and Unit data choice are in "meta". A null value is NOT FOUND or N/A.
+DATA SOURCE: Use only the JSON database (kit_schema "database-v2", built at the end of Stage 2): the file database.json or database.txt I uploaded with this message, or, if I uploaded none and this is the same chat as Stage 2, the database.json built at the end of Stage 2 in this chat. Before drawing anything, load the whole database by running code and print one line: the institution, meta.inst_years, meta.chart_years, and the number of lines in Sections B and D. If it does not load as complete JSON, or you can see only part of it, stop and say so; do not draw from a partial database. Do not re-read the uploaded financial statements for numbers. Do not change any value in the JSON. Each "v" is whole dollars; each "src" is the citation, starting with the file name. Section names in the rules map to JSON keys: Section A = A_unit_expenses, B = B_inst_revenue, C = C_unit_revenue, D = D_inst_expenses, E = E_unit_totals, F = F_balance_sheet. Institution and unit names, basis (public GASB vs. private FASB), audited status, and Unit data choice are in "meta". A null value is NOT FOUND or N/A.
 
 YEARS: Amounts are stored by column key under "values", "totals", and similar objects. "Earlier year," "later year," and "both audited years" mean meta.chart_years.earlier and meta.chart_years.later; the years between them is meta.chart_years.years_between. "Oldest actuals," "prior-year actuals," and "current budget" mean the column keys in meta.unit_chart_columns (oldest, prior, budget); the years between oldest and budget is meta.unit_chart_columns.years_between_oldest_and_budget. If meta.unit_chart_columns.prior is null, draw the unit charts with the two years you have and say so under each one. "Most recent audited year" means meta.chart_years.later, so Section F is F_balance_sheet[meta.chart_years.later]. meta.inst_years lists every institution year in the database.
 
@@ -603,7 +607,7 @@ same year and how it was resolved, and anything you were unsure about.
 
 DATA SUMMARY SOURCE: take items 1–4 from the JSON's meta, checks, overlap_checks, overrides, classification_differences, judgment_calls, and not_found, and the citations from each value's "src".
 
-JSON DATABASE: the uploaded file database.json (or database.txt).
+JSON DATABASE: the uploaded file database.json (or database.txt), or the database.json built earlier in this chat.
 Only if your tool cannot accept the upload, paste the complete file below this line.
 ```
 
@@ -629,7 +633,7 @@ WHAT CHANGES for the web (these replace the matplotlib-specific lines only):
 - Hover on any bar, point, or segment shows its exact dollar value and the JSON "src" citation for each input.
 
 DATA AND CALCULATION
-1. Embed the uploaded database.json, unchanged, inside <script type="application/json" id="db">. If you can run code, write the HTML file with code that reads database.json and inserts its exact contents, so no number is retyped. First confirm the file loads as complete JSON, as in the Stage 4 DATA SOURCE check.
+1. Embed database.json (uploaded, or built earlier in this chat), unchanged, inside <script type="application/json" id="db">. If you can run code, write the HTML file with code that reads database.json and inserts its exact contents, so no number is retyped. First confirm it loads as complete JSON, as in the Stage 4 DATA SOURCE check.
 2. Compute every total, share, CAGR, ratio, and sentence in JavaScript from that JSON at page load. Never type a computed value into the HTML. Never hard-code institution or unit names; read them from meta.
 3. Write one function per chart, named render_101_1, render_101_2, ... render_DEFENSE_1, plus render_summary. Each reads only the JSON.
 4. A JSON value of null is NOT FOUND or N/A. Apply the spec's n/m and "can't be made" rules; never substitute zero.
@@ -652,7 +656,7 @@ OUTPUT
 - Never abbreviate code with comments such as "...rest of charts here" or "similar to above". Every render function must be complete.
 - After the HTML, list any spec item you could not reproduce in Plotly, with the reason. Then stop.
 
-JSON DATABASE: the uploaded file database.json (or database.txt).
+JSON DATABASE: the uploaded file database.json (or database.txt), or the database.json built earlier in this chat.
 Only if your tool cannot accept the upload, paste the complete file below this line.
 ```
 
@@ -666,7 +670,7 @@ The biggest cross-platform fixes are mechanical: send the tool fewer pages, one 
 
 - **Trim long PDFs.** Keep only the statements and the notes Stage 1 lists (see Trimming a PDF). Check the last-page quote in Stage 1 against your PDF: a tool that claims to read the whole file but quotes the wrong text is reading part of it.
 - **One file per response.** Stage 2 already works this way, and each fragment is saved as a file, so a long chat does not have to hold everything in one response.
-- **Upload JSON; never paste it.** Stages 4 and 5 expect `database.json` as an upload and check that it loaded completely. Rename `.json` to `.txt` if the tool rejects the upload. If a tool cannot create downloadable files, it prints the JSON in a code block instead; copy that into a plain-text file named `database.json` and upload it.
+- **Upload JSON; never paste it.** Stages 4 and 5 expect `database.json` as an upload and check that it loaded completely. Rename `.json` to `.txt` if the tool rejects the upload. If a tool cannot create downloadable files, run Stages 4 and 5 in the same chat as Stage 2; they read the database from the chat.
 - **Split long prompts.** If a tool truncates or rejects a long message, send it in parts. Start Part 1 with: `This prompt arrives in 2 parts. After each part, reply only "Received part N." Begin work only after the final part.` Split Stage 2 after END ORIGINAL RULES; split Stage 4 after CHART 201.2.
 - **Start fresh when the tool drifts.** Signs: bracketed placeholders on a chart, an example institution name, numbers that differ from the JSON. Open a new chat and resume from the saved fragments or JSON; that is what they are for.
 - **Compare to the answer key** before trusting any platform (see Testing).
@@ -678,7 +682,7 @@ The biggest cross-platform fixes are mechanical: send the tool fewer pages, one 
 | Claude | Default chat with file creation enabled | Long Stage 4 output may need several "continue" turns | None beyond the kit |
 | ChatGPT | A model with the data analysis / code tool on | Occasionally re-reads PDFs instead of the JSON | The DATA SOURCE line in Stage 4; check the Calculation check table |
 | Gemini | Gemini app with the most capable model on your plan; Canvas for Stage 5. Google AI Studio is an alternative with adjustable output length (unverified for your account) | May describe code rather than run it, or show tables instead of chart images (unverified). Compared overlapping years inconsistently when it did the comparison itself (observed) | If Stage 4 returns tables only, accept them and rely on Stage 5. Ask Stage 5 to use Canvas so the HTML previews. Keep the merge at the end of Stage 2 as code; if Gemini cannot offer a downloadable file, it prints the JSON (fallback) |
-| Microsoft 365 Copilot (work account) | Copilot Chat with file upload; the Analyst agent if your tenant offers it, for Python | Reads only the first ~129,000 characters of a long PDF and says "preview truncated" (observed); split a long JSON across two files (observed); Python execution may be unavailable; tenant policy may block uploads (varies by organization) | Trim every report to the pages Stage 1 lists before uploading; use the Analyst agent or Python so fragments and `database.json` are downloadable files; upload `database.json` in Stages 4 and 5 instead of pasting it (a pasted copy was truncated, observed); if no Python, use Stage 4's table fallback and Stage 5 |
+| Microsoft 365 Copilot (work account) | The Analyst agent if your tenant offers it (Python and downloadable files); otherwise Copilot Chat with file upload | Reads only the first ~129,000 characters of a long PDF and says "preview truncated" (observed); refused a whole-file fragment as too large and said it could not create files (observed); truncated a pasted `database.json` (observed); tenant policy may block uploads (varies by organization) | Trim every report to the pages Stage 1 lists before uploading; Stage 2's three short parts per file; without file creation, run Stages 2 to 5 in one chat so nothing is copied; if no Python, use Stage 4's table fallback and Stage 5 |
 | Consumer Copilot | Not recommended | Limited file handling for multi-file financial statements (unverified) | Run Stages 1–3 elsewhere and use Copilot only for Stage 5 if needed |
 
 ### Gemini and Copilot test order

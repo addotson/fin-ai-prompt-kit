@@ -13,7 +13,7 @@ WHAT CHANGES for the web (these replace the matplotlib-specific lines only):
 - Hover on any bar, point, or segment shows its exact dollar value and the JSON "src" citation for each input.
 
 DATA AND CALCULATION
-1. Embed the uploaded database.json, unchanged, inside <script type="application/json" id="db">. If you can run code, write the HTML file with code that reads database.json and inserts its exact contents, so no number is retyped. First confirm the file loads as complete JSON, as in the Stage 4 DATA SOURCE check.
+1. Embed database.json (uploaded, or built earlier in this chat), unchanged, inside <script type="application/json" id="db">. If you can run code, write the HTML file with code that reads database.json and inserts its exact contents, so no number is retyped. First confirm it loads as complete JSON, as in the Stage 4 DATA SOURCE check.
 2. Compute every total, share, CAGR, ratio, and sentence in JavaScript from that JSON at page load. Never type a computed value into the HTML. Never hard-code institution or unit names; read them from meta.
 3. Write one function per chart, named render_101_1, render_101_2, ... render_DEFENSE_1, plus render_summary. Each reads only the JSON.
 4. A JSON value of null is NOT FOUND or N/A. Apply the spec's n/m and "can't be made" rules; never substitute zero.
@@ -36,5 +36,5 @@ OUTPUT
 - Never abbreviate code with comments such as "...rest of charts here" or "similar to above". Every render function must be complete.
 - After the HTML, list any spec item you could not reproduce in Plotly, with the reason. Then stop.
 
-JSON DATABASE: the uploaded file database.json (or database.txt).
+JSON DATABASE: the uploaded file database.json (or database.txt), or the database.json built earlier in this chat.
 Only if your tool cannot accept the upload, paste the complete file below this line.
