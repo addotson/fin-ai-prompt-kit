@@ -1,4 +1,4 @@
-STAGE 2 OF 5: BUILD database.json ONE SHORT PART AT A TIME. Do not draw charts. Do not calculate CAGRs or ratios.
+STAGE 2 OF 5: BUILD database.json ONE SOURCE FILE AT A TIME. Do not draw charts. Do not calculate CAGRs or ratios.
 
 STAGE 1 DECISIONS: use the STAGE 1 DECISIONS block from this chat. If this is a new chat, I have pasted it here:
 <paste the STAGE 1 DECISIONS block here, or leave this line as is in the same chat>
@@ -11,12 +11,15 @@ example or hypothetical department, and never use institution-wide numbers, or a
 in place of unit data.
 
 HOW THIS STAGE WORKS
-- You build one file, database.json, a little at a time. Each response extracts one PART of one source file and adds it to database.json by running code. You never retype earlier parts.
-- Order: the Stage 1 year map, newest institution report first, then older reports, then unit files. The bond rating report's three items go into the most recent institution report's PART 3.
-- Parts. Institution report: PART 1 = Section B (revenue lines, totals, tuition detail). PART 2 = Section D. PART 3 = Section F if this file needs it, plus this file's judgment calls and not-found items. Unit file: PART 1 = Section A. PART 2 = Sections C and E. PART 3 = this file's judgment calls and not-found items. If your response limit comfortably allows it, you may do more than one part of the same file in one response.
+- In your first response, state your MODE in one line and keep it for the whole stage:
+  FILES: you can run code, and a file your code saves is still there in your next response. You add each source file's data to database.json with code as you go.
+  PRINT: anything else. You print each source file's data as tables and build database.json once, at FINISH.
+  Do not switch modes. If you are in FILES mode and your saved database.json is gone, ask me to attach the latest database.json I downloaded, then continue in FILES mode.
+- One source file per response, in the order of the Stage 1 year map: newest institution report first, then older reports, then unit files. Each response covers all of that file's sections. Institution report: Sections B and D; Section F for the most recent report (and for every report if balance sheet years is ALL); the bond rating report's three items with the most recent report; and the file's judgment calls and not-found items. Unit file: Sections A, C, and E, plus judgment calls and not-found items.
+- If one file will not fit in a response, stop after a complete section, write "Type continue for the rest of <file name>," and resume with the next section. Never stop, shorten the extraction, or ask me how to proceed because of output size.
 - Before extracting a file, re-read the column headings on its statement pages. Each column's fiscal year comes from its printed heading, never from the file name. Label it "FY" plus the calendar year in which it ends.
-- Read a part's source pages before writing any of its numbers.
-- If you can no longer see the source file, say so in one line and ask me to attach it again. If database.json from your previous response is no longer available to your code, ask me to attach the latest database.json I downloaded. These are the only uploads you may ask for.
+- Read a section's source pages before writing any of its numbers.
+- If you can no longer see a source file, say so in one line and ask me to attach it again. Attaching a source file again, or the latest database.json in FILES mode, are the only uploads you may ask for.
 
 ===== BEGIN ORIGINAL RULES (edited to record every year column) =====
 EXTRACTION RULES
@@ -129,19 +132,24 @@ If a check fails, re-read the source and correct it. If it still fails, continue
 database checks.
 ===== END ORIGINAL RULES =====
 
-EACH RESPONSE
-1. Extract this part's values for every column in the file: the file's own year and its comparative year, or, for a unit file, every year column.
+EACH RESPONSE IN FILES MODE
+1. Extract this file's values for every column: the file's own year and its comparative year, or, for a unit file, every year column.
 2. Run code (Python) that:
    a. loads database.json if it exists, or starts it from the DATABASE SCHEMA below;
-   b. records this file in meta.files once, with its columns (key, fiscal year, type, role, year-end, heading as printed, heading page, restated);
-   c. writes this part's values following the MERGE RULES, replacing any earlier values from the same file and part and leaving everything else untouched;
+   b. records this file in meta.files, with its columns (key, fiscal year, type, role, year-end, heading as printed, heading page, restated);
+   c. writes this file's values following the MERGE RULES, replacing any earlier values from the same file and leaving everything else untouched;
    d. re-runs every arithmetic CHECK the data now allows, for every column, and replaces this file's checks;
-   e. saves database.json and prints one COUNT line for every section and column in the whole database, for example "B FY2026: 17 lines, total included $9,391,347,000; comparatives from FY26.pdf: FY2025 17 lines".
+   e. saves database.json and prints one COUNT line for every section and column in the whole database, for example "B FY2026: 17 lines (8 included), total included $9,391,347,000; comparatives from FY26.pdf: FY2025 17 lines".
 3. Give me the download link to the updated database.json.
-4. Print only: a short table of what this part added (Label | Category or bucket | Value for each column | src), the COUNT lines, and any FAIL check. Do not print the JSON.
-5. End with "<file name>: PART <n> of 3 saved to database.json. Type NEXT." After the last part of the last file, end with "All files extracted. Type FINISH to run the cross-checks." Then stop.
-If you cannot run code or save files at all, say NO CODE once. Then in each response print this part as the table in item 4, with every value and src, and keep going; at FINISH, build database.json from those tables following the same rules and print it once, in one code block.
-Never stop, shorten the extraction, or ask me how to proceed because of output size.
+4. Print only: a short table per section of what this file added (Label | Category or bucket | Value for each column | src), the COUNT lines exactly as your code printed them, and any FAIL check. Do not print the JSON.
+5. End with "<file name> saved to database.json. Type NEXT." After the last file, end with "All files extracted. Type FINISH to run the cross-checks." Then stop.
+Say "saved" only in a response in which your code ran and saved the file. Never type COUNT lines yourself.
+
+EACH RESPONSE IN PRINT MODE
+1. Extract this file's values for every column, as in FILES mode.
+2. Print every item as tables, one per section: Label | Category or bucket | Included? | Value for each column | src. Include every line, included or excluded, every total, the tuition detail, and every Section F item. These tables are the record; FINISH builds database.json from them.
+3. Run the arithmetic CHECKS on this file's numbers (with code, if you can run code within this response) and print each result.
+4. End with "<file name> extracted. Type NEXT." After the last file, end with "All files extracted. Type FINISH to build database.json." Then stop.
 
 MERGE RULES (your code applies these every time it writes)
 1. Values for a column key come only from the file where that column's role is "own". Every comparative column value goes into "comparatives" for cross-checking and never replaces an own value. If two files have the same own column, keep the more recent file's values and put the other file's values into "comparatives".
@@ -149,13 +157,14 @@ MERGE RULES (your code applies these every time it writes)
 3. Every "src" starts with its file name, for example "FY25 audit.pdf: p. 23 [PDF 31]".
 4. Every number is {"v": <whole-dollar integer, or null if NOT FOUND>, "src": "<file name>: <page or sheet!row>"}. Negative numbers stay negative. Never write thousands or millions. Use null with src "N/A" for items that do not apply (for example, net_assets_private at a public institution). Every null whose src is not "N/A" also appears in not_found.
 
-WHEN I TYPE FINISH (run code)
+WHEN I TYPE FINISH (FILES mode; run code)
 1. Unit columns that appear only as comparatives (for example, prior actuals shown in the budget file) are moved from "comparatives" into the unit sections and listed in meta.comparative_only_columns_used. Institution columns that appear only as comparatives are not used for charts.
 2. OVERLAP CHECK. For every comparative whose column also has an own value, compare the two: every line, every total, gross tuition, each Section B category (included lines) and each Section A or D bucket, and every Section E and F number present in both. Status: MATCH (identical); ROUNDING (differs by no more than half the rounding unit of the coarser file, for example $500 when one file is in thousands; for a category or bucket, that amount times its number of lines); MISMATCH; ONE_NOT_FOUND (one side null); NO_MATCHING_LINE (a line in one file has no matching label in the other). Save every result in overlap_checks.
 3. Chart years, unless I name others: earlier = oldest institution column used; later = newest. Unit: oldest = oldest actuals column; prior = newest actuals column before the budget year, or null if there is none besides oldest; budget = newest budget column. Years between two columns = months between their year-end dates ÷ 12. Fill meta.inst_years, unit_columns, year_ends, chart_years, and unit_chart_columns.
 4. Re-run every arithmetic CHECK on every column, and add one check per column that its year came from a printed heading.
 5. Save database.json, give me the link, and print the COUNT lines and a MERGE SUMMARY: each year used and its source file; years not used and why; chart years and years between; counts by overlap status; a table of every overlap row that is not MATCH or ROUNDING (Year | Item | Value used, with src | Comparative value, with src | Difference | Restated?); classification differences; every FAIL check. If no year appears in two files, say the cross-check could not run because the reports are not consecutive.
 6. End with: "Stage 2 complete. Download database.json. Review it with the Stage 3 checklist." Then stop.
+In PRINT mode, do the same in one response: if you can run code, write code that contains every value from your tables, applies the MERGE RULES and steps 1 to 4, and writes database.json; give me a download link if you can create files. If you cannot create files, print database.json once, in one code block (stop at the end of a complete line and write "Type continue for the rest of database.json" if it will not fit), then the MERGE SUMMARY.
 
 DATABASE SCHEMA (database.json; angle brackets describe the value; they are not data)
 {

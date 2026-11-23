@@ -1,4 +1,4 @@
-STAGE 3 CORRECTIONS. Apply only the changes below to database.json by running code (if you no longer have it, ask me to attach the latest copy). Then repeat the FINISH steps: re-run the checks and the overlap check, save database.json, give me the download link, and print the COUNT lines and the MERGE SUMMARY. Do not change any other value.
+STAGE 3 CORRECTIONS. Apply only the changes below to database.json, by running code if you can (if you no longer have the file, ask me to attach the latest copy). Then repeat the FINISH steps: re-run the checks and the overlap check, save database.json and give me the download link (or, if you cannot create files, print it again in one code block), and print the COUNT lines and the MERGE SUMMARY. Do not change any other value.
 
 1. <field path, e.g. D_inst_expenses.lines["Supplies and services"].values.FY2025> should be <amount> per <file name and page>.
 2. USE RESTATED: <item, e.g. B_inst_revenue line "Federal grants and contracts">, <year>. Use the later report's comparative value for that year from "comparatives" and record it in overrides.
