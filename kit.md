@@ -16,27 +16,6 @@ Rules for every platform: start a new chat for Stage 1; keep Stages 1–3 in the
 
 You can upload more than two years of audited statements. Every report adds its own year, and its comparative column becomes a cross-check on the year before. Upload consecutive reports (for example FY26 and FY25) to get the cross-check; reports with a gap between them (FY26 and FY22) add years but nothing to compare. The charts compare the oldest and newest years by default; name different years in the Stage 3 correction prompt.
 
-### What changed from the original class prompt
-
-The chart specifications, Sections A–F, checks, and CAGR formula come from the original class prompt. Only the lines below changed.
-
-| Original line | Change | Reason |
-| --- | --- | --- |
-| "without stopping to ask me questions" | Stage 1 asks bounded questions, then stops | Your method: resolve judgment calls before extraction |
-| "Never ask me to upload anything else" | Tool may list missing items once in Stage 1, but must proceed without them | Your method; still never blocks on, or invents, missing data |
-| "Extract Sections A through F... Don't print them" | Stage 2 builds `database.json` one source file per response, with code where the tool can keep files, and prints summary tables | Portable database; no step retypes earlier data |
-| "HOW TO WORK" steps 1–5 | Split across Stages 1, 2, 4 | Long single-pass tasks degrade on weaker tools (inference, not measured) |
-| "Don't create files or documents" | Kept for Stage 4; Stage 5 creates one HTML file | Dashboard requirement |
-| Page citation format unspecified | Defined as printed page number, with PDF page of the uploaded file in brackets | Tools pick inconsistently; makes spot-checks possible |
-| (new) | Stage 1 must prove how much of each file it can read, and lists pages to keep if it cannot read all of it | A tool with a file-size limit read only the first ~129,000 characters of each report and did not say so (observed in Copilot Chat) |
-| "Use only the column for the fiscal year that file covers" | Kept as the primary value; the comparative column is also recorded, and every year is read from the printed column heading | The overlap becomes a cross-check; file names can be wrong |
-| Two institution years and three unit years, fixed | Any number of years; the charts compare the oldest and newest unless you name others in Stage 3 | Use more data when it is provided |
-| The tool compares and totals across files | Arithmetic checks run in code where possible; the cross-file comparison runs at FINISH | Tools compared overlapping years inconsistently, skipped the check that would have failed, and reported files as saved when they were not (observed) |
-| JSON printed in chat, then copied and pasted | `database.json` is a downloadable file; Stages 4 and 5 read it as an upload, or from the same chat, and confirm it loaded completely | A pasted `database.json` was cut off partway (observed) |
-| Section F: most recent audited year | Optionally every year (Stage 1 question j) | Balance-sheet overlap check, at the cost of longer extractions |
-
-The DATA SUMMARY still prints at the end of Stage 4. Stage 5 repeats it inside the dashboard.
-
 ## Stage 1 prompt: inventory, coverage, and questions
 
 Upload every file first, then paste this. Expect one response that ends with numbered questions, or with a list of pages to keep if a file is too long for the tool. Check the quoted last-page text against your PDF: if the quote is not on that page, the tool is not reading the file, whatever it says.
@@ -732,3 +711,24 @@ A platform passes only if its JSON matches a hand-verified answer key. Without t
 | Chart compliance | For each chart: placeholders filled, sort and bar order, colors, CAGR sign and format, table and sentence present | 12 of 12 |
 | Dashboard | Loads with no console errors; all 12 sections render; Calculation check matches Stage 4; loading the key JSON re-renders correctly | All four |
 | Effort | Number of continue turns, trimmed files, and manual fixes needed | Record; no threshold |
+
+## What changed from the original class prompt
+
+The chart specifications, Sections A–F, checks, and CAGR formula come from the original class prompt. Only the lines below changed.
+
+| Original line | Change | Reason |
+| --- | --- | --- |
+| "without stopping to ask me questions" | Stage 1 asks bounded questions, then stops | Your method: resolve judgment calls before extraction |
+| "Never ask me to upload anything else" | Tool may list missing items once in Stage 1, but must proceed without them | Your method; still never blocks on, or invents, missing data |
+| "Extract Sections A through F... Don't print them" | Stage 2 builds `database.json` one source file per response, with code where the tool can keep files, and prints summary tables | Portable database; no step retypes earlier data |
+| "HOW TO WORK" steps 1–5 | Split across Stages 1, 2, 4 | Long single-pass tasks degrade on weaker tools (inference, not measured) |
+| "Don't create files or documents" | Kept for Stage 4; Stage 5 creates one HTML file | Dashboard requirement |
+| Page citation format unspecified | Defined as printed page number, with PDF page of the uploaded file in brackets | Tools pick inconsistently; makes spot-checks possible |
+| (new) | Stage 1 must prove how much of each file it can read, and lists pages to keep if it cannot read all of it | A tool with a file-size limit read only the first ~129,000 characters of each report and did not say so (observed in Copilot Chat) |
+| "Use only the column for the fiscal year that file covers" | Kept as the primary value; the comparative column is also recorded, and every year is read from the printed column heading | The overlap becomes a cross-check; file names can be wrong |
+| Two institution years and three unit years, fixed | Any number of years; the charts compare the oldest and newest unless you name others in Stage 3 | Use more data when it is provided |
+| The tool compares and totals across files | Arithmetic checks run in code where possible; the cross-file comparison runs at FINISH | Tools compared overlapping years inconsistently, skipped the check that would have failed, and reported files as saved when they were not (observed) |
+| JSON printed in chat, then copied and pasted | `database.json` is a downloadable file; Stages 4 and 5 read it as an upload, or from the same chat, and confirm it loaded completely | A pasted `database.json` was cut off partway (observed) |
+| Section F: most recent audited year | Optionally every year (Stage 1 question j) | Balance-sheet overlap check, at the cost of longer extractions |
+
+The DATA SUMMARY still prints at the end of Stage 4. Stage 5 repeats it inside the dashboard.
