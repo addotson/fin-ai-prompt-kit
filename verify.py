@@ -15,7 +15,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-FILES = ["stage-1.txt", "stage-2.txt", "stage-3-corrections.txt", "stage-4.txt", "stage-5.txt"]
+FILES = ["stage-1.txt", "stage-2.txt", "stage-3-corrections.txt", "stage-4.txt", "stage-5.txt", "stage-5-fix.txt"]
 CHROME_CANDIDATES = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "google-chrome", "chromium", "chromium-browser",

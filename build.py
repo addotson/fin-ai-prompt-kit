@@ -16,6 +16,7 @@ PROMPT_FILES = [
     "stage-3-corrections.txt",
     "stage-4.txt",
     "stage-5.txt",
+    "stage-5-fix.txt",
 ]
 PROMPT_LABELS = [
     "Stage 1 prompt",
@@ -23,6 +24,7 @@ PROMPT_LABELS = [
     "Stage 3 correction prompt",
     "Stage 4 prompt",
     "Stage 5 prompt",
+    "Stage 5 fix prompt",
 ]
 
 

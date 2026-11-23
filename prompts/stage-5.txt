@@ -12,6 +12,16 @@ WHAT CHANGES for the web (these replace the matplotlib-specific lines only):
 - "Show each chart as an image in this chat" and "Don't create files" do not apply to this stage.
 - Hover on any bar, point, or segment shows its exact dollar value and the JSON "src" citation for each input.
 
+PLOTLY LAYOUT RULES (these prevent the usual mess):
+- Title and subtitle go in layout.title as two lines: the bold title, then "<br>" and the subtitle in a smaller font. Make the top margin large enough (at least 90px) that they never touch the plot or the legend.
+- Legends are horizontal and below the plot, never on top of bars or lines.
+- Turn on automargin for both axes so no category name is cut off. Break any category name longer than about 28 characters onto two lines with "<br>".
+- Bar labels sit outside the bars with cliponaxis set to false. Extend the value axis about 20% past the largest bar so every label and every CAGR label to the right of a group fits inside the chart.
+- Notes go below the plot, with enough bottom margin, or as text under the chart; never on top of the data.
+- Use one font family for the whole page, 12 to 14px for chart labels, nothing smaller than 11px.
+- Plotly config: responsive true, displaylogo false. Each chart sizes to its container; nothing makes the page scroll sideways on a phone. Wide tables scroll sideways inside their own box.
+- Page style: one centered column up to 960px wide, one chart per row, plain tables with right-aligned numbers, the same spacing between every section.
+
 DATA AND CALCULATION
 1. Embed database.json (uploaded, or built earlier in this chat), unchanged, inside <script type="application/json" id="db">. If you can run code, write the HTML file with code that reads database.json and inserts its exact contents, so no number is retyped. First confirm it loads as complete JSON, as in the Stage 4 DATA SOURCE check.
 2. Compute every total, share, CAGR, ratio, and sentence in JavaScript from that JSON at page load. Never type a computed value into the HTML. Never hard-code institution or unit names; read them from meta.
@@ -29,6 +39,12 @@ PAGE LAYOUT
 - DATABASE panel: a read-only view of the JSON; a "Load database.json" file button that replaces the data and re-renders every chart (it accepts only kit_schema "database-v2"; for anything else it shows a message and keeps the current data); a "Download JSON" button.
 - A "Calculation check" table listing every computed total, CAGR, and ratio, so I can compare it to Stage 4.
 - Print: each chart section on its own page.
+
+VISUAL CHECK BEFORE SAVING (required; do not skip it)
+1. If this chat contains the Stage 4 chart images, compare each Plotly chart, one at a time, with the Stage 4 image of the same chart: same bars in the same order, same labels and colors, same title and subtitle, nothing extra. Where the Stage 4 image is cleaner, match it.
+2. Check every chart against the PLOTLY LAYOUT RULES: no overlapping or clipped text, no label outside the chart area, no legend covering data, no title touching the plot.
+3. If you can run code, render each chart to an image (for example Plotly with kaleido, or a headless browser opening the HTML) and look at the images. If you cannot, do the check by reading each chart's layout settings.
+4. Fix every problem, then save. After the link, print one line per chart: "Chart N: checked" or what you changed.
 
 OUTPUT
 - Save the complete HTML as a downloadable file named dashboard.html and give me the link. If your tool cannot create files but has a canvas or code document, put the complete HTML there.
