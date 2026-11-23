@@ -1,0 +1,9 @@
+*.pdf
+*.xlsx
+*.xls
+*.csv
+*.docx
+database*.json
+answer_key*.json
+dashboard*.html
+.DS_Store

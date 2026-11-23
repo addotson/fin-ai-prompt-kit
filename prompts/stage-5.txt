@@ -1,0 +1,38 @@
+STAGE 5 OF 5: BUILD ONE STANDALONE INTERACTIVE HTML DASHBOARD.
+
+GOAL: a single .html file that reproduces all 12 charts, their tables and sentences, and the DATA SUMMARY, as specified in the ORIGINAL RULES (CHART RULES, the 12 CHART sections, and DATA SUMMARY), using interactive JavaScript charts instead of matplotlib images.
+
+[If this is a new chat, paste the Stage 4 block from "===== BEGIN ORIGINAL RULES" to "===== END ORIGINAL RULES =====" here.]
+
+WHAT CARRIES OVER UNCHANGED from the ORIGINAL RULES: every title and subtitle wording, chart order, chart type, sort order, bar order, colors (including CAGR green/red/gray rules and light gray / medium gray / dark contrasting year colors), dollar label format ($1.2M, $450K), CAGR formula and "+4.2%/yr" format, n/m rules, notes at the bottom of charts, benchmark lines and their labels, the table and the one sentence under each chart, the unit-chart skip rule, "(unaudited)" subtitles, no gridlines, no 3D, legends only where specified, white background.
+
+WHAT CHANGES for the web (these replace the matplotlib-specific lines only):
+- Use Plotly.js loaded with exactly this tag in <head>: <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>. No other external files, libraries, fonts, or images.
+- "6.5 inches wide, landscape, 200 dpi" becomes: each chart fills its container width up to 900px, with the same height-to-width ratio as the spec (about 0.62 for landscape; about 0.92 for OFFENSE.1). Taller where the spec says to make the image taller.
+- "Show each chart as an image in this chat" and "Don't create files" do not apply to this stage.
+- Hover on any bar, point, or segment shows its exact dollar value and the JSON "src" citation for each input.
+
+DATA AND CALCULATION
+1. Embed the JSON database below, unchanged, inside <script type="application/json" id="db">.
+2. Compute every total, share, CAGR, ratio, and sentence in JavaScript from that JSON at page load. Never type a computed value into the HTML. Never hard-code institution or unit names; read them from meta.
+3. Write one function per chart, named render_101_1, render_101_2, ... render_DEFENSE_1, plus render_summary. Each reads only the JSON.
+4. A JSON value of null is NOT FOUND or N/A. Apply the spec's n/m and "can't be made" rules; never substitute zero.
+5. If meta.unit_data_applied is SKIP, each unit chart shows only the spec's skip line.
+
+PAGE LAYOUT
+- Top: institution name, unit name, fiscal years, and audited status from meta.
+- A left-side or top menu linking to each chart, the DATA SUMMARY, and the DATABASE panel.
+- Each chart section: the one-line "Chart number: Title" text, the chart with its title and subtitle drawn inside the chart area, the table of values, then the one sentence. Nothing else.
+- DATA SUMMARY section: items 1–5 from the spec, built from meta, checks, judgment_calls, not_found, and src values.
+- DATABASE panel: a read-only view of the JSON; a "Load database.json" file button that replaces the data and re-renders every chart; a "Download JSON" button.
+- A "Calculation check" table listing every computed total, CAGR, and ratio, so I can compare it to Stage 4.
+- Print: each chart section on its own page.
+
+OUTPUT
+- If you can create a downloadable file or a canvas/code document, put the complete HTML there.
+- Otherwise print it in a single code block. If it will not fit, split it only between render functions, label each block "PART 1 OF N", "PART 2 OF N", and end each with "Type continue for PART n." The parts must paste together, in order, into one working file.
+- Never abbreviate code with comments such as "...rest of charts here" or "similar to above". Every render function must be complete.
+- After the HTML, list any spec item you could not reproduce in Plotly, with the reason. Then stop.
+
+JSON DATABASE:
+<paste the full corrected database.json here>

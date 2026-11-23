@@ -1,0 +1,4 @@
+STAGE 3 CORRECTIONS. Apply only these changes to the JSON database, re-run the CHECKS that the changes affect, and reprint the full corrected JSON in the same schema. Do not change any other value.
+
+1. <field path, e.g. D_inst_expenses.lines["Supplies and services"].later> should be <amount> per <page>.
+2. ...

@@ -1,0 +1,36 @@
+STAGE 1 OF 5: FILE INVENTORY AND QUESTIONS. Do not extract numbers or draw anything yet.
+
+My institution: ________ My unit: ________
+Unit data: ________ (write UPLOAD or SKIP)
+
+This is the first of five stages. Later stages will extract data into a JSON database, draw 12 charts, and build an HTML dashboard. In this stage you only identify files and ask me the decisions you need.
+
+WHAT I'VE PROVIDED
+- Two years of my institution's audited financial statements: the most recent year, and one from
+about three years earlier.
+- Optional: my institution's most recent bond rating report.
+- If Unit data is UPLOAD: my unit's current budget, its prior-year actuals, and its actuals from
+about three years before the current budget, in one to three files.
+- If Unit data is SKIP: no unit data. Skip the five unit charts.
+
+DO THIS
+1. Identify each file: what it is, the fiscal year it covers and its year-end, its units (dollars,
+thousands, or millions), its accounting standard (GASB, FASB, IFRS, or other), and whether it is
+audited. Use the names I typed above; if I left them blank, use the names in the files.
+2. For each file, state whether you can read its text and tables. If a file is a scanned image you cannot read reliably, say so. Do not guess its contents.
+3. State the page convention you will use: printed page number as shown on the page, followed by the PDF page in brackets, for example "p. 23 [PDF 31]".
+4. Print a table: File name | What it is | Fiscal year | Year-end | Units | Standard | Audited? | Readable?
+5. State which unit years you have (oldest actuals, prior-year actuals, current budget). If Unit data is UPLOAD but no unit files are present, say Unit data will be treated as SKIP.
+6. List any item whose absence will prevent a specific chart, naming the chart. Do not ask me to upload it. Later stages will proceed without it.
+7. Ask me only the questions below that apply to these files, numbered, one line each, with your proposed default answer in brackets. Ask nothing else.
+   a. Private (FASB): does the statement of activities present an operating measure (case a) or not (case b)? State which you found and ask me to confirm.
+   b. Public (GASB): is there a discretely presented foundation that holds gifts and endowment? Confirm it should be included where the spec says.
+   c. Are hospital or health system amounts in separate columns? Confirm you will use academic columns only.
+   d. Does the state pay pension or OPEB contributions on the institution's behalf (on-behalf payments)? If found, confirm exclusion.
+   e. Scholarship allowances: are they combined with housing or other revenue? Is a tuition-only portion disclosed?
+   f. Unit budget: list the current budget's expense categories and revenue categories as you found them. If there are more than 8, propose which to combine.
+   g. Unit actuals: list any actuals line you cannot map to a current-budget category, with your proposed category.
+   h. Any file whose fiscal year does not match what I described.
+8. End with: "Answer the questions above, or reply DEFAULTS to accept all bracketed defaults. Then paste the Stage 2 prompt." Then stop.
+
+Never invent, sample, or estimate any number. Never use an example or hypothetical institution or department.

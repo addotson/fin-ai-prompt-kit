@@ -1,0 +1,222 @@
+STAGE 4 OF 5: DRAW THE 12 CHARTS FROM THE JSON DATABASE BELOW.
+
+DATA SOURCE: Use only the JSON database pasted at the end of this message. Do not re-read the uploaded files for numbers. Do not change any value in the JSON. Each "v" is whole dollars; each "src" is the citation. Section names in the rules map to JSON keys: Section A = A_unit_expenses, B = B_inst_revenue, C = C_unit_revenue, D = D_inst_expenses, E = E_unit_totals, F = F_balance_sheet. Institution and unit names, fiscal years, basis (public GASB vs. private FASB), audited status, and Unit data choice are in "meta". A null value is NOT FOUND or N/A.
+
+Do not ask me questions in this stage. Extract nothing new: your job is to calculate and draw. Do not analyze or interpret.
+
+===== BEGIN ORIGINAL RULES (unchanged) =====
+Draw the 12 charts in order, following the CHART RULES. After the last chart, print the DATA SUMMARY.
+If you run out of room in a response, stop after a complete chart and write "Type continue for the
+next chart." Never stop partway through a chart.
+
+CHART RULES (all charts)
+- Draw every chart by running Python code with matplotlib, typing the values from your extracted
+data directly into the code. Never use an image generator: it can't place exact numbers.
+- Show each chart as an image in this chat. Don't create files or documents.
+- If you can't run code, draw nothing. Instead, for each chart, print its number, its title and subtitle
+filled in, and the table of values it would show.
+- 6.5 inches wide, landscape, 200 dpi, white background, unless a chart says otherwise. No
+gridlines, no 3D effects, no legend unless a chart asks for one.
+- Dollar labels like $1.2M or $450K.
+- CAGR = (later amount ÷ earlier amount)^(1 ÷ years between them) − 1, using dollars. For unit
+charts, the CAGR always runs from the oldest actuals to the current budget; the prior-year
+actuals are shown but not used in the CAGR. If either amount is zero or negative, show "n/m"
+and explain under the chart. Write CAGRs as "+4.2%/yr" or "−1.8%/yr," always with the sign.
+Revenue CAGRs: green for growth, red for decline. Expense CAGRs: red for growth, green for
+decline. Discount CAGRs (101.4): gray.
+- GROUPED BARS (101.2, 101.3, 101.5, 101.6): one group per category or bucket; bar length =
+share of total, labeled with its percentage; the CAGR labeled to the right of each group; a legend
+for the years only. Institution charts (101.2, 101.5): two bars, earlier year light gray, later year a
+dark contrasting color. Unit charts (101.3, 101.6): three bars in this order, oldest actuals light gray,
+prior-year actuals medium gray, current budget a dark contrasting color.
+- Every chart carries its title and subtitle on the image itself: the title in bold at the top, the subtitle
+in a smaller font directly under it. Fill in the institution name, unit name, fiscal years, and
+calculated figures in every title and subtitle. Never leave a bracketed placeholder on an image.
+- Before showing a chart, check that no titles, subtitles, labels, legends, or notes overlap or run off
+the image. If they do, make the figure taller and redraw; don't shrink the text.
+- Above each chart image, print one line of text with its number and title, for example "Chart
+101.2: Where Example University's Revenue Comes From". Under each chart: the table of values
+used, then the one sentence the chart asks for. Nothing else.
+- Unit charts (101.1, 101.3, 101.6, 201.2, DEFENSE.1): if Unit data is SKIP, or you have no real
+unit data, print one line with the chart's number and the name in its heading below, for example
+"Chart 101.3 (Revenues, unit): Skipped: no unit data," and draw nothing. A unit chart drawn from
+invented or institution-wide numbers is worse than no chart.
+CHART 101.1: 10% OF OPERATING BUDGET (unit)
+Data: Section A current-budget expenses by category. Calculate the total and 10% of it.
+Horizontal bars, one per category, largest at top, in gray. Add a bar labeled "10% of our budget,"
+in rank order, in a bold contrasting color. Label every bar with its dollars.
+Title: "10% of [unit]'s Budget = $[amount]". Subtitle: "[budget fiscal year] budgeted operating
+expenses by category".
+Sentence: the categories smaller than the 10% amount.
+CHART 101.2: REVENUES (institution)
+Data: Section B included revenue by category, both audited years. Paired bars, sorted by
+later-year share, largest at top; leave out categories that are zero in both years.
+Title: "Where [institution]'s Revenue Comes From". Subtitle: "Share of total revenue, [earlier year]
+vs. [later year]. Total revenue grew [total CAGR]."
+Under the chart, the table shows each category's dollars and share in each year, and its CAGR.
+Sentence: the categories that grew faster than total revenue and so gained share.
+CHART 101.3: REVENUES (unit)
+Same as 101.2, using Section C for all three unit years, with the unit's own categories. Three
+bars per category; sort by current-budget share.
+Title: "Where [unit]'s Revenue Comes From". Subtitle: "Share of total revenue, [oldest actuals
+year] and [prior year] actuals vs. [budget year] budget. Total revenue grew [total CAGR]."
+Under the chart, the table shows each category's dollars and share in each of the three years,
+and its CAGR. Sentence: the categories that grew faster than total revenue.
+CHART 101.4: TUITION DISCOUNT (institution)
+Data: Section B tuition detail, both audited years. Discounts = allowances subtracted from tuition;
+if combined with other revenue, use the tuition portion if disclosed, otherwise the combined
+amount, and say so. Net tuition = gross − discounts. Discount rate = discounts ÷ gross. CAGRs
+of gross tuition, discounts, and net tuition. If gross tuition is NOT FOUND, write "Chart 101.4 can't
+be made: gross tuition not reported" and move on.
+Two stacked columns, one per year. Full height = gross tuition, labeled at the top ("$412.6M
+charged"). Bottom segment = net tuition, dark ("$238.1M collected"). Top segment = discounts,
+light gray ("$174.5M discounted (42.3%)"). List the three CAGRs to the right.
+Title: "What [institution] Charges vs. What It Collects". Subtitle: "Tuition and fees, [earlier year] vs.
+[later year]. Discount rate went from [earlier rate] to [later rate]."
+Public (GASB) only, small note at the bottom of the image: "Scholarship allowances at public
+institutions include federal (Pell) and state grants applied to student bills, not only the institution's
+own aid. The discount rate shown is therefore higher than the institution's own discount rate."
+Sentence: "Net tuition grew [faster/slower] than gross tuition by [difference] percentage points per
+year."
+CHART 101.5: EXPENSES, PEOPLE, SPACE, AND STUFF (institution)
+Data: Section D totals by bucket, both audited years. Paired bars, in this order from the top:
+People, Space, Stuff.
+Title: "Where [institution]'s Money Goes: People, Space, and Stuff". Subtitle: "Share of total
+expenses, [earlier year] vs. [later year]. Total expenses grew [total CAGR]."
+Small note at the bottom of the image: "People: [lines]. Space: [lines]. Stuff: [lines]." using the
+source's line names. If a bucket has more than 6 lines, list the 5 largest, then "and [number]
+others." Make the image taller if needed.
+Under the chart, add a second table listing every line, its bucket, and its amounts. Sentence: any
+bucket that grew faster than total expenses.
+CHART 101.6: EXPENSES, PEOPLE, SPACE, AND STUFF (unit)
+Same as 101.5, using Section A for all three unit years. Three bars per bucket. In the note at the
+bottom, list the lines by current-budget amount.
+Title: "Where [unit]'s Money Goes: People, Space, and Stuff". Subtitle: "Share of total expenses,
+[oldest actuals year] and [prior year] actuals vs. [budget year] budget. Total expenses grew [total
+CAGR]."
+Under the chart, the tables show all three years.
+CHART 201.1: REVENUE AND EXPENSE GROWTH / SURPLUS OR DEFICIT (institution)
+Data: total included revenue (Section B) and total expenses (Section D), both audited years.
+Surplus or deficit = revenue − expenses; margin = surplus or deficit ÷ revenue. CAGRs of
+revenue and expenses.
+Two panels stacked, sharing a fiscal-year axis. Top (two-thirds of the height): revenue line in a
+dark color and expense line in a contrasting color, neither red nor green; label each marker with
+its dollars; label each line's CAGR at its right end; start the vertical axis just below the lowest
+value. Bottom (one-third): one bar per year, green for surplus, red for deficit, with a clear zero
+line, labeled "$12.3M (1.5%)".
+Title: "Is [institution]'s Revenue Keeping Pace with Its Expenses?" Subtitle: "[earlier year] to [later
+year]. Revenue grew [revenue CAGR]; expenses grew [expense CAGR]."
+Sentence: "Expenses grew [faster/slower] than revenue by [difference] percentage points per
+year."
+CHART 201.2: REVENUE AND EXPENSE GROWTH / SURPLUS OR DEFICIT (unit)
+Same as 201.1, using Section E for all three years: oldest actuals, prior-year actuals, current
+budget. Space the years by the actual time between them, leaving gaps for missing years. Draw
+actual years as solid lines with filled markers; draw the segment into the budget year dashed,
+with hollow markers, labeled "Budget." Draw the budget-year bar lighter or hatched.
+Title: "Is [unit]'s Revenue Keeping Pace with Its Expenses?" Subtitle: "[oldest actuals year]
+actuals to [budget year] budget. Revenue grew [revenue CAGR]; expenses grew [expense
+CAGR]."
+Sentence as in 201.1. If Section E recorded central transfers or allocations, add one sentence
+stating their amount in each year.
+CHART OFFENSE.1: CUSHION AGAINST RISK + CAPACITY TO INVEST (institution)
+Data: Section F and total expenses from Section D, most recent audited year. Use the
+institution's own amounts only. For public institutions with a foundation, also show the
+foundation's expendable net assets (without donor restrictions + with donor restrictions not held in
+perpetuity) as a separate line in the table under the chart.
+Calculate:
+1. Days cash on hand = liquid resources ÷ ((total expenses − depreciation) ÷ 365). Private:
+financial assets available within one year. Public: cash and cash equivalents plus investments,
+current and noncurrent, from the statement of net position, excluding amounts labeled restricted,
+endowment, or held by a foundation. If investments appear only in the notes, use the notes'
+unrestricted total and say so under the chart.
+2. Current ratio = current assets ÷ current liabilities, or "n/m" if NOT PRESENTED.
+3. Expendable net assets. Public: unrestricted + restricted expendable. Private: without donor
+restrictions + with donor restrictions not held in perpetuity − (net PP&E − long-term debt).
+4. Public only, adjusted: replace unrestricted with unrestricted + net pension liability + net OPEB
+liability − pension/OPEB deferred outflows + pension/OPEB deferred inflows.
+5. Primary reserve ratio = expendable net assets ÷ total expenses, also in months (× 12).
+6. Viability ratio = expendable net assets ÷ long-term debt, or "n/m: no debt."
+Public: calculate 5 and 6 both as reported and adjusted.
+A 2×2 grid of panels, each with its own axis starting at zero; negative bars extend below a clear
+zero line. Put each row's label on its own line above the row, with clear space between it and the
+panel titles. Top row, labeled "Cushion Against Risk": "Days Cash on Hand" ("How many days
+could we pay our bills from cash?") and "Current Ratio" ("Can we cover the bills due this year?").
+Bottom row, labeled "Capacity to Invest": "Primary Reserve Ratio" ("How long could reserves run
+the institution?") and "Viability Ratio" ("Could reserves pay off our debt?"). One dark bar per
+panel; for public institutions, the bottom panels get "As reported" (light) and "Adjusted for
+pension/OPEB" (dark). Label every bar ("143 days," "1.8x," "0.52x (6.2 months)").
+Dashed, labeled benchmark lines: primary reserve 0.40x (about 5 months); viability 1.25x; current
+ratio 1.0x, labeled "1.0x = current assets equal current liabilities"; days cash at the
+rating-category median from the rating report, labeled with agency and rating, or no line if none.
+Image 6.5 inches wide and about 6 inches tall.
+Title: "Cushion Against Risk + Capacity to Invest". Subtitle: "[institution], [most recent year]".
+Small note at the bottom of the image: "Benchmarks: primary reserve (0.40) and viability (1.25)
+from Strategic Financial Analysis for Higher Education, 7th ed. (KPMG; Prager, Sealy & Co.;
+Attain). Current ratio of 1.0 is a general convention, not a higher education standard. Days cash:
+[the rating-agency median from the institution's rating report, an approximate comparison
+because agencies calculate liquidity differently / no benchmark shown because no rating report
+was provided]."
+Under the chart, the table shows each ratio, its components, and its benchmark. Sentence: which
+ratios are at or above their benchmark and which are below.
+CHART OFFENSE.2: NET ASSETS, HOW MUCH CAN WE USE? (institution)
+Data: Section F net assets, most recent audited year. Public institutions: add the foundation's
+amounts, sorted into the groups below.
+Four groups, least to most flexible:
+1. "Tied up in buildings and equipment." Public: net investment in capital assets. Private: net
+PP&E − long-term debt.
+2. "Restricted permanently (endowment principal)." Public: restricted nonexpendable + foundation
+net assets held in perpetuity. Private: with donor restrictions held in perpetuity.
+3. "Restricted to purposes set by donors or law." Public: restricted expendable + foundation
+restricted net assets not held in perpetuity. Private: with donor restrictions not held in perpetuity.
+4. "Unrestricted: available for any purpose." Public: unrestricted + foundation net assets without
+donor restrictions. Private: without donor restrictions − group 1.
+The groups must add up to total net assets. Public only: also show adjusted unrestricted,
+calculated as in OFFENSE.1.
+Horizontal bars in the order above, from the top: groups 1 to 3 in gray, group 4 in a bold
+contrasting color, each labeled "$310.5M (41%)"; negative bars extend left of a clear zero line.
+Public: group 4 as two bars, "As reported" and "Adjusted for pension/OPEB."
+Title: "How Much of [institution]'s Net Assets Can It Actually Use?" Subtitle: "Net assets by
+restriction, [most recent year]. Total net assets: $[total]."
+Under the chart, the table shows each group, the lines it includes, its amount, and its share.
+Sentence: "[share]% of total net assets is available for any purpose." Public: give both shares.
+CHART OFFENSE.3: FACILITIES, AGE AND REINVESTMENT (institution)
+Data: Section F. Average age (years) = accumulated depreciation ÷ depreciation expense.
+Capital reinvestment ratio = purchases of capital assets ÷ depreciation expense. "n/m" if an input
+is NOT FOUND.
+Two panels side by side, axes starting at zero. Left: "Average Age of Facilities" ("Roughly how
+many years old are our buildings and equipment?"), one dark bar labeled "[value] years." Right:
+"Capital Reinvestment Ratio" ("Are we renewing facilities as fast as they wear out?"), one dark
+bar labeled "[value]x," with a dashed line at 1.0x labeled "1.0x = spending keeps pace with
+depreciation."
+Title: "Is [institution] Keeping Up with Its Facilities?" Subtitle: "[most recent year]".
+Small note at the bottom of the image: "Average age is an accounting estimate, not a measure of
+physical condition. Capital spending includes new buildings as well as renewal, and can swing
+widely from year to year because of a single large project. A facilities condition assessment, if
+your institution has one, measures deferred maintenance directly."
+Sentence: whether capital spending was above or below depreciation expense, and by how
+much.
+CHART DEFENSE.1: 10% EXPENSE REDUCTION (unit)
+Data: Section A current-budget expenses by bucket. Calculate the total, 10% of it, each bucket's
+share, and the 10% amount as a share of Stuff and of Space and Stuff combined.
+Horizontal bars on one scale: People, Space, Stuff in gray, each labeled "$9.8M (72%)"; then a
+bar labeled "10% cut" in a bold contrasting color, labeled with its dollars.
+Title: "A 10% Cut to [unit]'s Budget = $[amount]". Subtitle: "[budget year] budget. A 10% cut
+equals [share]% of everything the unit spends on Space and Stuff combined."
+Sentence: "A 10% cut equals [a]% of Stuff and [b]% of Space and Stuff combined." If the cut is
+larger than all of Stuff, say so.
+DATA SUMMARY (after the last chart)
+1. Each file: what it is, fiscal year, units, accounting standard, audited or not. Then the Unit data
+choice you applied (UPLOAD or SKIP), and why, if it differs from what I wrote, and which unit
+years you had.
+2. Totals by year, with page citations: institution included revenue, total expenses, total net
+assets; unit revenue and expenses.
+3. Judgment calls: revenue lines you excluded, lines that mix buckets, and how you placed
+amortization and scholarship allowances.
+4. Anything NOT FOUND, any check that failed, and anything you were unsure about.
+5. The five largest numbers you used, with page citations, so I can spot-check them.
+===== END ORIGINAL RULES =====
+
+DATA SUMMARY SOURCE: take items 1–4 from the JSON's meta, checks, judgment_calls, and not_found, and the citations from each value's "src".
+
+JSON DATABASE:
+<paste the full corrected database.json here>
