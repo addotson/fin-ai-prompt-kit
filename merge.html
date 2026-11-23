@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Fragment Merge and Check</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1f2328;--muted:#5d6670;--line:#d9dde1;--panel:#f2f4f6;--code-bg:#f5f6f7;--accent:#0b5cad;--accent-fg:#fff;--ok:#1a7f37;--warn:#9a6700;--bad:#cf222e;--th:#eef1f4;--ok-bg:#dafbe1;--warn-bg:#fff8c5;--bad-bg:#ffebe9}
+@media (prefers-color-scheme:dark){:root{--bg:#121417;--fg:#e4e7ea;--muted:#9aa4ae;--line:#30363d;--panel:#1a1e23;--code-bg:#171b20;--accent:#5aa2f0;--accent-fg:#0b1220;--ok:#4cc26a;--warn:#d4a72c;--bad:#ff7b72;--th:#1f242a;--ok-bg:#12261a;--warn-bg:#2a2410;--bad-bg:#2d1517}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:24px 24px 80px}
+a{color:var(--accent)}
+h1{font-size:1.8rem;line-height:1.25;margin:.3em 0 .3em}
+h2{font-size:1.3rem;margin:2em 0 .6em;padding-top:.6em;border-top:1px solid var(--line)}
+.lede{color:var(--muted);max-width:760px}
+code{font:.9em ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);border:1px solid var(--line);border-radius:4px;padding:.05em .3em}
+.btn{font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:10px 14px;border-radius:6px;cursor:pointer;background:var(--accent);color:var(--accent-fg);border:1px solid var(--accent);display:inline-flex;align-items:center;min-height:38px}
+.btn.secondary{background:var(--bg);color:var(--fg);border-color:var(--line)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;background:var(--panel)}
+.drop.over{border-color:var(--accent)}
+.drop p{margin:.3em 0}
+.hint{color:var(--muted);font-size:14px}
+textarea{width:100%;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:10px;margin:8px 0}
+details{margin:12px 0}
+summary{cursor:pointer;font-weight:600}
+ol.inputs{padding-left:1.4em}
+ol.inputs li{margin:4px 0}
+ol.inputs button{margin-left:8px;font-size:12px;padding:2px 8px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.table-wrap{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;vertical-align:top;padding:7px 9px;border-bottom:1px solid var(--line)}
+th{background:var(--th);font-weight:600;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.src{color:var(--muted);font-size:12px;display:block}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.s-ok{background:var(--ok-bg);color:var(--ok)}
+.s-warn{background:var(--warn-bg);color:var(--warn)}
+.s-bad{background:var(--bad-bg);color:var(--bad)}
+.s-na{background:var(--panel);color:var(--muted)}
+ul.msgs{padding-left:1.2em}
+ul.msgs li{margin:4px 0}
+ul.msgs li.w::marker{color:var(--bad)}
+.picks{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0}
+.picks label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:4px}
+select{font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);min-width:130px}
+label.check{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+label.check input{margin-top:.3em}
+.summary{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+pre.json{max-height:28rem;overflow:auto;background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:12px;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.empty{color:var(--muted)}
+@media (max-width:700px){main{padding:16px 16px 60px}h1{font-size:1.45rem}}
+</style>
+</head>
+<body>
+<main>
+<p><a href="./">&larr; Back to the prompt kit</a></p>
+<h1>Merge and check fragments</h1>
+<p class="lede">Load the JSON fragments from Stage 2, one per file. This page combines them into one <code>database.json</code> for Stages 4 and 5, runs the arithmetic checks, and compares every year that appears in more than one report. It runs entirely in your browser: nothing is uploaded, and the page is blocked from making network requests.</p>
+
+<h2>1. Load fragments</h2>
+<div id="drop" class="drop">
+  <p>Drop fragment files here, or <label class="btn" for="files" tabindex="0">choose files</label><input type="file" id="files" multiple accept=".json,.txt,application/json,text/plain" hidden></p>
+  <p class="hint">Did the tool split one fragment across two files? Load both parts in order and the page joins them.</p>
+</div>
+<details><summary>Or paste fragment text</summary>
+  <textarea id="paste" rows="8" placeholder="Paste one fragment, or one part of a split fragment"></textarea>
+  <button id="addPaste" class="btn" type="button">Add pasted text</button>
+</details>
+<div class="row">
+  <button id="demoBtn" class="btn secondary" type="button">Load synthetic demo</button>
+  <button id="clear" class="btn secondary" type="button">Clear all</button>
+</div>
+<ol id="inputs" class="inputs"></ol>
+
+<div id="results" hidden>
+  <h2>2. Files and years</h2>
+  <ul id="parseMsgs" class="msgs"></ul>
+  <div id="filesTable"></div>
+  <ul id="msgs" class="msgs"></ul>
+
+  <h2>3. Years to chart</h2>
+  <div id="yearPick" class="picks"></div>
+  <label class="check"><input type="checkbox" id="compInst"> <span>Use institution years that appear only as a comparative column. Off by default: the kit takes each year from its own report.</span></label>
+  <label class="check"><input type="checkbox" id="compUnit" checked> <span>Use unit year columns that appear only inside another unit file (for example, prior actuals shown in the budget file).</span></label>
+
+  <h2>4. Overlap check</h2>
+  <p class="hint">Each year that appears in two reports is compared: the year's own report (used for the charts) against the comparative column of the other report. MATCH means identical whole dollars; ROUNDING means within the rounding of the coarser report (for example, $500 when one report is in thousands). For a MISMATCH, open both cited pages. Tick "Use comparative value" only for a figure the later report restated, and tick the affected totals too.</p>
+  <div id="overlapSummary" class="summary"></div>
+  <label class="check"><input type="checkbox" id="onlyProblems" checked> <span>Show only items that need review</span></label>
+  <div id="overlapTable"></div>
+  <div id="classTable"></div>
+
+  <h2>5. Arithmetic checks</h2>
+  <div id="checksTable"></div>
+
+  <h2>6. Download</h2>
+  <div class="row"><button id="download" class="btn" type="button">Download database.json</button></div>
+  <details><summary>View database.json</summary><pre id="jsonView" class="json"></pre></details>
+</div>
+</main>
+
+<script type="application/json" id="demo-data">[{"kit_schema":"fragment-v2","file":{"file":"Synthetic_Audit_FY26.pdf","kind":"institution","what":"Audited financial statements (synthetic)","standard":"GASB","audited":true,"units_in_source":"thousands","status":"OK","last_page_seen":"p. 60 [PDF 64]"},"meta":{"institution":"Synthetic Test University (demo data)","unit":null,"unit_data_requested":"UPLOAD","unit_data_applied":"UPLOAD","unit_data_reason":"Unit budget file provided.","basis":"GASB","currency":"USD","page_convention":"printed page [PDF page of the uploaded file]","balance_sheet_years":"LATEST","user_decisions":[{"question":"j. Balance sheet years","answer":"LATEST"}]},"columns":[{"key":"FY2026","fiscal_year":"FY2026","type":"audited","role":"own","year_end":"2026-06-30","heading_as_printed":"2026","heading_src":"p. 12 [PDF 14]","restated":false},{"key":"FY2025","fiscal_year":"FY2025","type":"audited","role":"comparative","year_end":"2025-06-30","heading_as_printed":"2025 (as restated)","heading_src":"p. 12 [PDF 14]","restated":true}],"A_unit_expenses":null,"B_inst_revenue":{"lines":[{"label":"Tuition and fees, net of scholarship allowances","operating":true,"included":true,"exclusion_reason":null,"category":"Net tuition and fees","values":{"FY2026":{"v":120000000,"src":"p. 14 [PDF 16]"},"FY2025":{"v":115000000,"src":"p. 14 [PDF 17]"}}},{"label":"State appropriations","operating":false,"included":true,"exclusion_reason":null,"category":"Government appropriations","values":{"FY2026":{"v":200000000,"src":"p. 14 [PDF 16]"},"FY2025":{"v":195000000,"src":"p. 14 [PDF 17]"}}},{"label":"Federal grants and contracts","operating":true,"included":true,"exclusion_reason":null,"category":"Grants and contracts","values":{"FY2026":{"v":80000000,"src":"p. 14 [PDF 16]"},"FY2025":{"v":78000000,"src":"p. 14 [PDF 17]"}}},{"label":"Auxiliary enterprises","operating":true,"included":true,"exclusion_reason":null,"category":"Auxiliary enterprises","values":{"FY2026":{"v":40000000,"src":"p. 14 [PDF 16]"},"FY2025":{"v":38000000,"src":"p. 14 [PDF 17]"}}},{"label":"Capital appropriations","operating":false,"included":false,"exclusion_reason":"Capital appropriation","category":null,"values":{"FY2026":{"v":10000000,"src":"p. 14 [PDF 16]"},"FY2025":{"v":12000000,"src":"p. 14 [PDF 17]"}}}],"total_included":{"FY2026":{"v":440000000,"src":"p. 14 [PDF 16]"},"FY2025":{"v":426000000,"src":"p. 14 [PDF 16]"}},"statement_total_revenues":{"FY2026":{"v":450000000,"src":"p. 14 [PDF 16]"},"FY2025":{"v":438000000,"src":"p. 14 [PDF 16]"}},"tuition":{"FY2026":{"gross":{"v":200000000,"src":"p. 30 [PDF 32]"},"allowances":[{"label":"Scholarship allowances","amount":{"v":80000000,"src":"p. 30 [PDF 32]"}}],"allowances_cover_other_revenue":false,"tuition_portion_of_allowances":{"v":80000000,"src":"p. 30 [PDF 32]"}},"FY2025":{"gross":{"v":190000000,"src":"p. 30 [PDF 32]"},"allowances":[{"label":"Scholarship allowances","amount":{"v":75000000,"src":"p. 30 [PDF 32]"}}],"allowances_cover_other_revenue":false,"tuition_portion_of_allowances":{"v":75000000,"src":"p. 30 [PDF 32]"}}}},"C_unit_revenue":null,"D_inst_expenses":{"source_of_natural_classification":"Note 12, operating expenses by natural classification","lines":[{"label":"Salaries and wages","bucket":"PEOPLE","interest_added_from_outside_operating":false,"values":{"FY2026":{"v":250000000,"src":"p. 41 [PDF 43]"},"FY2025":{"v":240000000,"src":"p. 41 [PDF 43]"}}},{"label":"Benefits","bucket":"PEOPLE","interest_added_from_outside_operating":false,"values":{"FY2026":{"v":90000000,"src":"p. 41 [PDF 43]"},"FY2025":{"v":86000000,"src":"p. 41 [PDF 43]"}}},{"label":"Supplies and services","bucket":"STUFF","interest_added_from_outside_operating":false,"values":{"FY2026":{"v":60000000,"src":"p. 41 [PDF 43]"},"FY2025":{"v":58000000,"src":"p. 41 [PDF 43]"}}},{"label":"Depreciation","bucket":"SPACE","interest_added_from_outside_operating":false,"values":{"FY2026":{"v":30000000,"src":"p. 41 [PDF 43]"},"FY2025":{"v":29000000,"src":"p. 41 [PDF 43]"}}},{"label":"Scholarships and fellowships","bucket":"STUFF","interest_added_from_outside_operating":false,"values":{"FY2026":{"v":15000000,"src":"p. 41 [PDF 43]"},"FY2025":{"v":14000000,"src":"p. 41 [PDF 43]"}}}],"totals":{"FY2026":{"v":445000000,"src":"p. 41 [PDF 43]"},"FY2025":{"v":427000000,"src":"p. 41 [PDF 43]"}},"statement_total_operating_expenses":{"FY2026":{"v":445000000,"src":"p. 41 [PDF 43]"},"FY2025":{"v":427000000,"src":"p. 41 [PDF 43]"}}},"E_unit_totals":null,"F_balance_sheet":{"FY2026":{"cash_and_equivalents":{"v":50000000,"src":"p. 12 [PDF 14]"},"investments":[{"label":"Investments","current":false,"restricted_or_endowment":false,"held_by_foundation":false,"amount":{"v":150000000,"src":"p. 12 [PDF 14]"}}],"investments_only_in_notes":false,"fasb_liquidity_available_within_one_year":{"v":null,"src":"N/A"},"current_assets":{"v":120000000,"src":"p. 12 [PDF 14]"},"current_liabilities":{"v":60000000,"src":"p. 12 [PDF 14]"},"net_assets_public":{"net_investment_in_capital_assets":{"v":400000000,"src":"p. 12 [PDF 14]"},"restricted_nonexpendable":{"v":50000000,"src":"p. 12 [PDF 14]"},"restricted_expendable":{"v":80000000,"src":"p. 12 [PDF 14]"},"unrestricted":{"v":-20000000,"src":"p. 12 [PDF 14]"}},"net_assets_private":{"without_donor_restrictions":{"v":null,"src":"N/A"},"with_donor_held_in_perpetuity":{"v":null,"src":"N/A"},"with_donor_not_in_perpetuity":{"v":null,"src":"N/A"}},"total_net_assets":{"v":510000000,"src":"p. 12 [PDF 14]"},"ppe_net":{"v":600000000,"src":"p. 12 [PDF 14]"},"accumulated_depreciation":{"v":500000000,"src":"p. 33 [PDF 35]"},"depreciation_expense":{"v":30000000,"src":"p. 33 [PDF 35]"},"purchases_of_capital_assets":{"v":35000000,"src":"p. 16 [PDF 18]"},"long_term_debt":[{"label":"Bonds payable","current":false,"amount":{"v":200000000,"src":"p. 36 [PDF 38]"}}],"net_pension_liability":{"v":150000000,"src":"p. 44 [PDF 46]"},"net_opeb_liability":{"v":40000000,"src":"p. 50 [PDF 52]"},"pension_opeb_deferred_outflows":{"v":30000000,"src":"p. 12 [PDF 14]"},"pension_opeb_deferred_inflows":{"v":20000000,"src":"p. 12 [PDF 14]"},"foundation":{"present":false,"name":"","total_expenses":{"v":null,"src":"N/A"},"without_donor_restrictions":{"v":null,"src":"N/A"},"with_donor_held_in_perpetuity":{"v":null,"src":"N/A"},"with_donor_not_in_perpetuity":{"v":null,"src":"N/A"}},"rating":{"provided":false,"agency":"","rating":"","median_days_cash":{"v":null,"src":"N/A"}}}},"checks":[{"check":"Included plus excluded revenue lines equal total revenues","column":"FY2026","status":"PASS","detail":"450000000 = 450000000"}],"judgment_calls":["Capital appropriations excluded as capital revenue."],"not_found":[]},{"kit_schema":"fragment-v2","file":{"file":"Synthetic_Audit_FY25.pdf","kind":"institution","what":"Audited financial statements (synthetic)","standard":"GASB","audited":true,"units_in_source":"thousands","status":"OK","last_page_seen":"p. 60 [PDF 64]"},"meta":{"institution":"Synthetic Test University (demo data)","unit":null,"unit_data_requested":"UPLOAD","unit_data_applied":"UPLOAD","unit_data_reason":"Unit budget file provided.","basis":"GASB","currency":"USD","page_convention":"printed page [PDF page of the uploaded file]","balance_sheet_years":"LATEST","user_decisions":[{"question":"j. Balance sheet years","answer":"LATEST"}]},"columns":[{"key":"FY2025","fiscal_year":"FY2025","type":"audited","role":"own","year_end":"2025-06-30","heading_as_printed":"2025","heading_src":"p. 12 [PDF 14]","restated":false},{"key":"FY2024","fiscal_year":"FY2024","type":"audited","role":"comparative","year_end":"2024-06-30","heading_as_printed":"2024","heading_src":"p. 12 [PDF 14]","restated":false}],"A_unit_expenses":null,"B_inst_revenue":{"lines":[{"label":"Tuition and fees, net of scholarship allowances","operating":true,"included":true,"exclusion_reason":null,"category":"Net tuition and fees","values":{"FY2025":{"v":115000000,"src":"p. 14 [PDF 16]"},"FY2024":{"v":110000000,"src":"p. 14 [PDF 17]"}}},{"label":"State appropriations","operating":false,"included":true,"exclusion_reason":null,"category":"Government appropriations","values":{"FY2025":{"v":195000000,"src":"p. 14 [PDF 16]"},"FY2024":{"v":190000000,"src":"p. 14 [PDF 17]"}}},{"label":"Federal grants & contracts","operating":true,"included":true,"exclusion_reason":null,"category":"Grants and contracts","values":{"FY2025":{"v":77500000,"src":"p. 14 [PDF 16]"},"FY2024":{"v":75000000,"src":"p. 14 [PDF 17]"}}},{"label":"Auxiliary enterprises","operating":true,"included":true,"exclusion_reason":null,"category":"Other","values":{"FY2025":{"v":38000000,"src":"p. 14 [PDF 16]"},"FY2024":{"v":36000000,"src":"p. 14 [PDF 17]"}}},{"label":"Capital appropriations","operating":false,"included":false,"exclusion_reason":"Capital appropriation","category":null,"values":{"FY2025":{"v":12000000,"src":"p. 14 [PDF 16]"},"FY2024":{"v":8000000,"src":"p. 14 [PDF 17]"}}}],"total_included":{"FY2025":{"v":425500000,"src":"p. 14 [PDF 16]"},"FY2024":{"v":411000000,"src":"p. 14 [PDF 16]"}},"statement_total_revenues":{"FY2025":{"v":437500000,"src":"p. 14 [PDF 16]"},"FY2024":{"v":419000000,"src":"p. 14 [PDF 16]"}},"tuition":{"FY2025":{"gross":{"v":190000000,"src":"p. 30 [PDF 32]"},"allowances":[{"label":"Scholarship allowances","amount":{"v":75000000,"src":"p. 30 [PDF 32]"}}],"allowances_cover_other_revenue":false,"tuition_portion_of_allowances":{"v":75000000,"src":"p. 30 [PDF 32]"}},"FY2024":{"gross":{"v":180000000,"src":"p. 30 [PDF 32]"},"allowances":[{"label":"Scholarship allowances","amount":{"v":70000000,"src":"p. 30 [PDF 32]"}}],"allowances_cover_other_revenue":false,"tuition_portion_of_allowances":{"v":70000000,"src":"p. 30 [PDF 32]"}}}},"C_unit_revenue":null,"D_inst_expenses":{"source_of_natural_classification":"Note 12, operating expenses by natural classification","lines":[{"label":"Salaries and wages","bucket":"PEOPLE","interest_added_from_outside_operating":false,"values":{"FY2025":{"v":240000000,"src":"p. 41 [PDF 43]"},"FY2024":{"v":230000000,"src":"p. 41 [PDF 43]"}}},{"label":"Benefits","bucket":"PEOPLE","interest_added_from_outside_operating":false,"values":{"FY2025":{"v":86000000,"src":"p. 41 [PDF 43]"},"FY2024":{"v":83000000,"src":"p. 41 [PDF 43]"}}},{"label":"Supplies and services","bucket":"STUFF","interest_added_from_outside_operating":false,"values":{"FY2025":{"v":58000000,"src":"p. 41 [PDF 43]"},"FY2024":{"v":55000000,"src":"p. 41 [PDF 43]"}}},{"label":"Depreciation","bucket":"SPACE","interest_added_from_outside_operating":false,"values":{"FY2025":{"v":29000000,"src":"p. 41 [PDF 43]"},"FY2024":{"v":28000000,"src":"p. 41 [PDF 43]"}}},{"label":"Scholarships and fellowships","bucket":"STUFF","interest_added_from_outside_operating":false,"values":{"FY2025":{"v":14000000,"src":"p. 41 [PDF 43]"},"FY2024":{"v":13000000,"src":"p. 41 [PDF 43]"}}}],"totals":{"FY2025":{"v":427000000,"src":"p. 41 [PDF 43]"},"FY2024":{"v":409000000,"src":"p. 41 [PDF 43]"}},"statement_total_operating_expenses":{"FY2025":{"v":427000000,"src":"p. 41 [PDF 43]"},"FY2024":{"v":409000000,"src":"p. 41 [PDF 43]"}}},"E_unit_totals":null,"F_balance_sheet":null,"checks":[{"check":"Included plus excluded revenue lines equal total revenues","column":"FY2025","status":"PASS","detail":"437500000 = 437500000"}],"judgment_calls":["Capital appropriations excluded as capital revenue."],"not_found":[]},{"kit_schema":"fragment-v2","file":{"file":"Synthetic_Audit_FY21.pdf","kind":"institution","what":"Audited financial statements (synthetic)","standard":"GASB","audited":true,"units_in_source":"dollars","status":"OK","last_page_seen":"p. 60 [PDF 64]"},"meta":{"institution":"Synthetic Test University (demo data)","unit":null,"unit_data_requested":"UPLOAD","unit_data_applied":"UPLOAD","unit_data_reason":"Unit budget file provided.","basis":"GASB","currency":"USD","page_convention":"printed page [PDF page of the uploaded file]","balance_sheet_years":"LATEST","user_decisions":[{"question":"j. Balance sheet years","answer":"LATEST"}]},"columns":[{"key":"FY2021","fiscal_year":"FY2021","type":"audited","role":"own","year_end":"2021-06-30","heading_as_printed":"2021","heading_src":"p. 12 [PDF 14]","restated":false},{"key":"FY2020","fiscal_year":"FY2020","type":"audited","role":"comparative","year_end":"2020-06-30","heading_as_printed":"2020","heading_src":"p. 12 [PDF 14]","restated":false}],"A_unit_expenses":null,"B_inst_revenue":{"lines":[{"label":"Tuition and fees, net of scholarship allowances","operating":true,"included":true,"exclusion_reason":null,"category":"Net tuition and fees","values":{"FY2021":{"v":100000400,"src":"p. 14 [PDF 16]"},"FY2020":{"v":98000000,"src":"p. 14 [PDF 17]"}}},{"label":"State appropriations","operating":false,"included":true,"exclusion_reason":null,"category":"Government appropriations","values":{"FY2021":{"v":170000000,"src":"p. 14 [PDF 16]"},"FY2020":{"v":165000000,"src":"p. 14 [PDF 17]"}}},{"label":"Federal grants and contracts","operating":true,"included":true,"exclusion_reason":null,"category":"Grants and contracts","values":{"FY2021":{"v":60000000,"src":"p. 14 [PDF 16]"},"FY2020":{"v":55000000,"src":"p. 14 [PDF 17]"}}},{"label":"Auxiliary enterprises","operating":true,"included":true,"exclusion_reason":null,"category":"Auxiliary enterprises","values":{"FY2021":{"v":30000000,"src":"p. 14 [PDF 16]"},"FY2020":{"v":33000000,"src":"p. 14 [PDF 17]"}}},{"label":"Capital appropriations","operating":false,"included":false,"exclusion_reason":"Capital appropriation","category":null,"values":{"FY2021":{"v":5000000,"src":"p. 14 [PDF 16]"},"FY2020":{"v":4000000,"src":"p. 14 [PDF 17]"}}}],"total_included":{"FY2021":{"v":360000400,"src":"p. 14 [PDF 16]"},"FY2020":{"v":351000000,"src":"p. 14 [PDF 16]"}},"statement_total_revenues":{"FY2021":{"v":365000400,"src":"p. 14 [PDF 16]"},"FY2020":{"v":355000000,"src":"p. 14 [PDF 16]"}},"tuition":{"FY2021":{"gross":{"v":170000000,"src":"p. 30 [PDF 32]"},"allowances":[{"label":"Scholarship allowances","amount":{"v":70000000,"src":"p. 30 [PDF 32]"}}],"allowances_cover_other_revenue":false,"tuition_portion_of_allowances":{"v":70000000,"src":"p. 30 [PDF 32]"}},"FY2020":{"gross":{"v":165000000,"src":"p. 30 [PDF 32]"},"allowances":[{"label":"Scholarship allowances","amount":{"v":67000000,"src":"p. 30 [PDF 32]"}}],"allowances_cover_other_revenue":false,"tuition_portion_of_allowances":{"v":67000000,"src":"p. 30 [PDF 32]"}}}},"C_unit_revenue":null,"D_inst_expenses":{"source_of_natural_classification":"Note 12, operating expenses by natural classification","lines":[{"label":"Salaries and wages","bucket":"PEOPLE","interest_added_from_outside_operating":false,"values":{"FY2021":{"v":210000000,"src":"p. 41 [PDF 43]"},"FY2020":{"v":205000000,"src":"p. 41 [PDF 43]"}}},{"label":"Benefits","bucket":"PEOPLE","interest_added_from_outside_operating":false,"values":{"FY2021":{"v":75000000,"src":"p. 41 [PDF 43]"},"FY2020":{"v":72000000,"src":"p. 41 [PDF 43]"}}},{"label":"Supplies and services","bucket":"STUFF","interest_added_from_outside_operating":false,"values":{"FY2021":{"v":50000000,"src":"p. 41 [PDF 43]"},"FY2020":{"v":48000000,"src":"p. 41 [PDF 43]"}}},{"label":"Depreciation","bucket":"SPACE","interest_added_from_outside_operating":false,"values":{"FY2021":{"v":25000000,"src":"p. 41 [PDF 43]"},"FY2020":{"v":24000000,"src":"p. 41 [PDF 43]"}}},{"label":"Scholarships and fellowships","bucket":"STUFF","interest_added_from_outside_operating":false,"values":{"FY2021":{"v":12000000,"src":"p. 41 [PDF 43]"},"FY2020":{"v":11000000,"src":"p. 41 [PDF 43]"}}}],"totals":{"FY2021":{"v":372000000,"src":"p. 41 [PDF 43]"},"FY2020":{"v":360000000,"src":"p. 41 [PDF 43]"}},"statement_total_operating_expenses":{"FY2021":{"v":372000000,"src":"p. 41 [PDF 43]"},"FY2020":{"v":360000000,"src":"p. 41 [PDF 43]"}}},"E_unit_totals":null,"F_balance_sheet":null,"checks":[{"check":"Included plus excluded revenue lines equal total revenues","column":"FY2021","status":"PASS","detail":"365000400 = 365000400"}],"judgment_calls":["Capital appropriations excluded as capital revenue."],"not_found":[]},{"kit_schema":"fragment-v2","file":{"file":"Synthetic_Unit_Budget_FY26.xlsx","kind":"unit","what":"Unit budget with prior actuals (synthetic)","standard":"other","audited":false,"units_in_source":"dollars","status":"OK","last_page_seen":"Budget!A1:F40"},"meta":{"institution":"Synthetic Test University (demo data)","unit":"Department of Demo Studies (demo data)","unit_data_requested":"UPLOAD","unit_data_applied":"UPLOAD","unit_data_reason":"Unit budget file provided.","basis":"GASB","currency":"USD","page_convention":"printed page [PDF page of the uploaded file]","balance_sheet_years":"LATEST","user_decisions":[{"question":"j. Balance sheet years","answer":"LATEST"}]},"columns":[{"key":"FY2026B","fiscal_year":"FY2026","type":"budget","role":"own","year_end":"2026-06-30","heading_as_printed":"FY26 Budget","heading_src":"Budget!C3","restated":false},{"key":"FY2025A","fiscal_year":"FY2025","type":"actual","role":"comparative","year_end":"2025-06-30","heading_as_printed":"FY25 Actual","heading_src":"Budget!D3","restated":false},{"key":"FY2023A","fiscal_year":"FY2023","type":"actual","role":"comparative","year_end":"2023-06-30","heading_as_printed":"FY23 Actual","heading_src":"Budget!E3","restated":false}],"A_unit_expenses":{"categories":["Personnel","Operations","Facilities"],"lines":[{"label":"Faculty salaries","category":"Personnel","bucket":"PEOPLE","values":{"FY2026B":{"v":3000000,"src":"Budget!row10"},"FY2025A":{"v":2900000,"src":"Budget!row10"},"FY2023A":{"v":2600000,"src":"Budget!row10"}}},{"label":"Staff benefits","category":"Personnel","bucket":"PEOPLE","values":{"FY2026B":{"v":1000000,"src":"Budget!row11"},"FY2025A":{"v":950000,"src":"Budget!row11"},"FY2023A":{"v":850000,"src":"Budget!row11"}}},{"label":"Supplies","category":"Operations","bucket":"STUFF","values":{"FY2026B":{"v":400000,"src":"Budget!row12"},"FY2025A":{"v":380000,"src":"Budget!row12"},"FY2023A":{"v":350000,"src":"Budget!row12"}}},{"label":"Space charges","category":"Facilities","bucket":"SPACE","values":{"FY2026B":{"v":600000,"src":"Budget!row13"},"FY2025A":{"v":580000,"src":"Budget!row13"},"FY2023A":{"v":550000,"src":"Budget!row13"}}}],"totals":{"FY2026B":{"v":5000000,"src":"Budget!row15"},"FY2025A":{"v":4810000,"src":"Budget!row15"},"FY2023A":{"v":4350000,"src":"Budget!row15"}}},"B_inst_revenue":null,"C_unit_revenue":{"categories":["Central allocation","Tuition share","Other"],"lines":[{"label":"Central allocation","category":"Central allocation","is_central_allocation":true,"values":{"FY2026B":{"v":3500000,"src":"Budget!row20"},"FY2025A":{"v":3400000,"src":"Budget!row20"},"FY2023A":{"v":3100000,"src":"Budget!row20"}}},{"label":"Tuition revenue share","category":"Tuition share","is_central_allocation":false,"values":{"FY2026B":{"v":1300000,"src":"Budget!row21"},"FY2025A":{"v":1250000,"src":"Budget!row21"},"FY2023A":{"v":1150000,"src":"Budget!row21"}}},{"label":"Other income","category":"Other","is_central_allocation":false,"values":{"FY2026B":{"v":200000,"src":"Budget!row22"},"FY2025A":{"v":190000,"src":"Budget!row22"},"FY2023A":{"v":150000,"src":"Budget!row22"}}}],"totals":{"FY2026B":{"v":5000000,"src":"Budget!row24"},"FY2025A":{"v":4840000,"src":"Budget!row24"},"FY2023A":{"v":4400000,"src":"Budget!row24"}}},"D_inst_expenses":null,"E_unit_totals":{"FY2026B":{"revenue":{"v":5000000,"src":"Budget!row24"},"expenses":{"v":5000000,"src":"Budget!row15"},"central_transfers_in":{"v":3500000,"src":"Budget!row20"},"transfers_out":{"v":0,"src":"Budget!row26"}},"FY2025A":{"revenue":{"v":4840000,"src":"Budget!row24"},"expenses":{"v":4810000,"src":"Budget!row15"},"central_transfers_in":{"v":3400000,"src":"Budget!row20"},"transfers_out":{"v":0,"src":"Budget!row26"}},"FY2023A":{"revenue":{"v":4400000,"src":"Budget!row24"},"expenses":{"v":4350000,"src":"Budget!row15"},"central_transfers_in":{"v":3100000,"src":"Budget!row20"},"transfers_out":{"v":0,"src":"Budget!row26"}}},"F_balance_sheet":null,"checks":[{"check":"Unit lines add up to stated totals","column":"FY2026B","status":"PASS","detail":"5000000 = 5000000"}],"judgment_calls":[],"not_found":[]}]</script>
+
+<script id="merge-core">
+// Pure merge logic, no DOM. Also run by tests/test_merge.mjs in Node.
+var KitMerge = (function () {
+  'use strict';
+  var UNIT = { dollars: 1, thousands: 1000, millions: 1000000 };
+  var LINE_ATTRS = {
+    A_unit_expenses: ['category', 'bucket'],
+    B_inst_revenue: ['operating', 'included', 'category'],
+    C_unit_revenue: ['category', 'is_central_allocation'],
+    D_inst_expenses: ['bucket', 'interest_added_from_outside_operating']
+  };
+  var TOTALS = {
+    A_unit_expenses: ['totals'],
+    B_inst_revenue: ['total_included', 'statement_total_revenues'],
+    C_unit_revenue: ['totals'],
+    D_inst_expenses: ['totals', 'statement_total_operating_expenses']
+  };
+  var NEEDS_REVIEW = { MISMATCH: 1, ONE_NOT_FOUND: 1, NO_MATCHING_LINE: 1 };
+
+  function normLabel(s) { return String(s == null ? '' : s).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim(); }
+  function isNumObj(o) { return o !== null && typeof o === 'object' && !Array.isArray(o) && 'v' in o && 'src' in o; }
+  function val(o) { return isNumObj(o) && typeof o.v === 'number' && isFinite(o.v) ? o.v : null; }
+  function clone(o) { return o === undefined ? undefined : JSON.parse(JSON.stringify(o)); }
+  function fmt(n) { return n == null ? 'null' : (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US'); }
+  function prefix(o, file, note) {
+    if (Array.isArray(o)) return o.map(function (x) { return prefix(x, file, note); });
+    if (o && typeof o === 'object') {
+      if (isNumObj(o)) {
+        var src = o.src === 'N/A' ? 'N/A' : file + ': ' + (o.src == null ? '' : o.src) + (note ? ' ' + note : '');
+        return { v: o.v, src: src };
+      }
+      var r = {};
+      Object.keys(o).forEach(function (k) { r[k] = prefix(o[k], file, note); });
+      return r;
+    }
+    return o;
+  }
+
+  // ---------- parsing ----------
+  function stripFences(t) { return String(t).replace(/^﻿/, '').replace(/^\s*```[A-Za-z]*\s*$/gm, ''); }
+  function jsonish(t) {
+    return stripFences(t).split('\n').filter(function (l) {
+      return /^\s*($|[{}\[\]",0-9-]|true\b|false\b|null\b)/.test(l);
+    }).join('\n');
+  }
+  function tryParse(t) {
+    var s = t.indexOf('{'), e = t.lastIndexOf('}');
+    if (s < 0 || e < s) return null;
+    try { var o = JSON.parse(t.slice(s, e + 1)); return o && typeof o === 'object' && !Array.isArray(o) ? o : null; } catch (err) { return null; }
+  }
+  function parseOne(text) { return tryParse(stripFences(text)) || tryParse(jsonish(text)); }
+
+  // items: [{name, text}] in load order. Returns {parsed:[{name,obj}], errors:[], notes:[]}.
+  function parseInputs(items) {
+    var parsed = [], errors = [], notes = [], buf = [];
+    function names(list) { return list.map(function (b) { return b.name; }).join(' + '); }
+    items.forEach(function (it) {
+      if (buf.length) {
+        var joined = tryParse(buf.concat([it]).map(function (b) { return jsonish(b.text); }).join('\n'));
+        if (joined) {
+          var nm = names(buf.concat([it]));
+          parsed.push({ name: nm, obj: joined });
+          notes.push('Joined ' + nm + ' into one fragment.');
+          buf = [];
+          return;
+        }
+      }
+      var obj = parseOne(it.text);
+      if (obj) {
+        if (buf.length) { errors.push('Could not read ' + names(buf) + ' as JSON, alone or joined with the next file.'); buf = []; }
+        parsed.push({ name: it.name, obj: obj });
+        return;
+      }
+      buf.push(it);
+    });
+    if (buf.length) errors.push('Could not read ' + names(buf) + ' as JSON. If it is part of a split fragment, load the other part right after it.');
+    return { parsed: parsed, errors: errors, notes: notes };
+  }
+
+  function validate(o) {
+    var p = [];
+    if (!o || typeof o !== 'object') return { fatal: 'not a JSON object' };
+    if (o.kit_schema !== 'fragment-v2') {
+      return { fatal: o.kit_schema === 'database-v2' ? 'this is a merged database.json, not a Stage 2 fragment'
+        : 'kit_schema is ' + JSON.stringify(o.kit_schema) + ', expected "fragment-v2" (is this from the current Stage 2 prompt?)' };
+    }
+    if (!o.file || (o.file.kind !== 'institution' && o.file.kind !== 'unit')) return { fatal: 'file.kind must be "institution" or "unit"' };
+    if (!Array.isArray(o.columns) || !o.columns.length) return { fatal: 'no columns listed' };
+    o.columns.forEach(function (c) {
+      if (!c.key) p.push('a column has no key');
+      if (c.role !== 'own' && c.role !== 'comparative') p.push('column ' + c.key + ': role must be "own" or "comparative"');
+    });
+    if (!o.columns.some(function (c) { return c.role === 'own'; })) p.push('no column is marked "own"');
+    if (o.file.status && o.file.status !== 'OK') p.push('status is ' + o.file.status + '. Values may be missing: trim the PDF and redo Stages 1 and 2 for this file');
+    return { problems: p };
+  }
+
+  function combineSameFile(list, notes) {
+    var byName = {}, out = [];
+    list.forEach(function (f) {
+      var name = f.obj && f.obj.file && f.obj.file.file;
+      if (!name || !byName[name]) { if (name) byName[name] = f; out.push(f); return; }
+      var t = byName[name].obj, s = f.obj, conflicts = [];
+      Object.keys(s).forEach(function (k) {
+        if (t[k] == null) { t[k] = s[k]; return; }
+        if (s[k] == null) return;
+        if (Array.isArray(t[k]) && Array.isArray(s[k])) {
+          if (k === 'columns') s[k].forEach(function (c) { if (!t[k].some(function (x) { return x.key === c.key; })) t[k].push(c); });
+          else t[k] = t[k].concat(s[k]);
+          return;
+        }
+        if (['kit_schema', 'file', 'meta'].indexOf(k) < 0 && JSON.stringify(t[k]) !== JSON.stringify(s[k])) conflicts.push(k);
+      });
+      notes.push('Combined ' + byName[name].name + ' and ' + f.name + ' (two pieces of ' + name + ').' +
+        (conflicts.length ? ' Both pieces contained ' + conflicts.join(', ') + '; kept the first.' : ''));
+      byName[name].name += ' + ' + f.name;
+    });
+    return out;
+  }
+
+  function fyNum(s) { var m = String(s || '').match(/(\d{4})/); return m ? +m[1] : null; }
+  function colSortKey(c) { return (/^\d{4}-\d{2}-\d{2}$/.test(c.year_end || '') ? c.year_end : (fyNum(c.fiscal_year || c.key) || 0) + '-12-31') + (c.type === 'budget' ? 'B' : 'A'); }
+  function yearsBetween(a, b) {
+    var re = /^\d{4}-\d{2}-\d{2}$/;
+    if (a && b && re.test(a.year_end || '') && re.test(b.year_end || '')) {
+      var m = (+b.year_end.slice(0, 4) - +a.year_end.slice(0, 4)) * 12 + (+b.year_end.slice(5, 7) - +a.year_end.slice(5, 7));
+      return Math.round(m / 12 * 100) / 100;
+    }
+    var x = fyNum(a && (a.fiscal_year || a.key)), y = fyNum(b && (b.fiscal_year || b.key));
+    return x != null && y != null ? y - x : null;
+  }
+  function fileNameYears(name) {
+    var ys = [], m, re = /(?:^|[^0-9])((?:19|20)\d{2})(?![0-9])/g, re2 = /FY[\s_-]?(\d{2})(?![0-9])/gi;
+    while ((m = re.exec(name))) ys.push(+m[1]);
+    while ((m = re2.exec(name))) ys.push(2000 + +m[1]);
+    return ys;
+  }
+
+  // ---------- merge ----------
+  // parsed: [{name, obj}]. opts: {overrides:[ids], useComparativeOnly:{institution,unit}, chartYears:{earlier,later}, unitChart:{oldest,prior,budget}}
+  function merge(parsed, opts) {
+    opts = opts || {};
+    var overrides = {}; (opts.overrides || []).forEach(function (id) { overrides[id] = true; });
+    var uco = opts.useComparativeOnly || {};
+    var useComp = { institution: uco.institution === true, unit: uco.unit !== false };
+    var warnings = [], info = [], notes = [];
+
+    // Expand arrays of fragments (the demo file is one array).
+    var flat = [];
+    parsed.forEach(function (p) {
+      if (Array.isArray(p.obj)) p.obj.forEach(function (o, i) { flat.push({ name: p.name + ' #' + (i + 1), obj: clone(o) }); });
+      else flat.push({ name: p.name, obj: clone(p.obj) });
+    });
+
+    var frags = [];
+    combineSameFile(flat, notes).forEach(function (f) {
+      var r = validate(f.obj);
+      var label = (f.obj && f.obj.file && f.obj.file.file) || f.name;
+      if (r.fatal) { warnings.push(label + ': skipped, ' + r.fatal + '.'); return; }
+      r.problems.forEach(function (x) { warnings.push(label + ': ' + x + '.'); });
+      f.file = label;
+      f.kind = f.obj.file.kind;
+      f.unit = UNIT[f.obj.file.units_in_source] || 1;
+      f.recency = f.obj.columns.filter(function (c) { return c.role === 'own'; }).map(colSortKey).sort().pop() || '';
+      frags.push(f);
+    });
+    frags.sort(function (a, b) { return a.recency < b.recency ? 1 : a.recency > b.recency ? -1 : 0; });
+
+    frags.forEach(function (f) {
+      var own = f.obj.columns.filter(function (c) { return c.role === 'own'; }).map(function (c) { return fyNum(c.fiscal_year || c.key); });
+      var ys = fileNameYears(f.file);
+      if (ys.length && own.length && !ys.some(function (y) { return own.indexOf(y) >= 0; })) {
+        info.push(f.file + ': the file name suggests ' + ys.map(function (y) { return 'FY' + y; }).join(' or ') +
+          ', but the printed column heading makes its own year ' + own.map(function (y) { return 'FY' + y; }).join(', ') + '. The heading is used.');
+      }
+    });
+
+    // Columns and the primary source for each.
+    var cat = {}, order = [];
+    frags.forEach(function (f) {
+      f.obj.columns.forEach(function (c) {
+        if (!c.key) return;
+        if (!cat[c.key]) { cat[c.key] = { kind: f.kind, cands: [] }; order.push(c.key); }
+        cat[c.key].cands.push({ f: f, c: c });
+      });
+    });
+    var primary = {}, colInfo = {}, compOnly = [];
+    order.forEach(function (k) {
+      var e = cat[k], owns = e.cands.filter(function (x) { return x.c.role === 'own'; }), pick = null;
+      if (owns.length) {
+        pick = owns[0];
+        if (owns.length > 1) warnings.push(k + ' is the own year of more than one file (' + owns.map(function (x) { return x.f.file; }).join(', ') + '). Using ' + pick.f.file + '; the others are cross-checked below.');
+      } else if (useComp[e.kind]) {
+        pick = e.cands[0]; compOnly.push(k);
+        info.push(k + ' appears only as a comparative column; using it from ' + pick.f.file + '.');
+      } else {
+        info.push(k + ' appears only as a comparative column (in ' + e.cands.map(function (x) { return x.f.file; }).join(', ') + '), so it is used only for cross-checks.');
+      }
+      if (pick) { primary[k] = pick.f; colInfo[k] = pick.c; }
+    });
+    function keysOf(kind) {
+      return Object.keys(primary).filter(function (k) { return cat[k].kind === kind; })
+        .sort(function (a, b) { var x = colSortKey(colInfo[a]), y = colSortKey(colInfo[b]); return x < y ? -1 : x > y ? 1 : 0; });
+    }
+    var instKeys = keysOf('institution'), unitKeys = keysOf('unit');
+    var instFr = frags.filter(function (f) { return f.kind === 'institution'; });
+    var unitFr = frags.filter(function (f) { return f.kind === 'unit'; });
+
+    // Sections.
+    var lineIndex = {}, classDiffs = [];
+    function mergeLines(sec, list) {
+      var out = [], idx = {};
+      list.forEach(function (f) {
+        var s = f.obj[sec];
+        if (!s || !Array.isArray(s.lines)) return;
+        s.lines.forEach(function (line) {
+          var n = normLabel(line.label), e;
+          if (idx[n] === undefined) {
+            e = {};
+            Object.keys(line).forEach(function (k) { if (k !== 'values') e[k] = clone(line[k]); });
+            e.values = {};
+            Object.defineProperty(e, '_from', { value: f.file, enumerable: false });
+            idx[n] = out.length; out.push(e);
+          } else {
+            e = out[idx[n]];
+            LINE_ATTRS[sec].forEach(function (a) {
+              if (line[a] !== undefined && JSON.stringify(line[a]) !== JSON.stringify(e[a])) {
+                classDiffs.push({ section: sec, line: e.label, attribute: a, kept: e[a], kept_from: e._from, other: line[a], other_from: f.file });
+              }
+            });
+          }
+          Object.keys(line.values || {}).forEach(function (k) { if (primary[k] === f) e.values[k] = prefix(line.values[k], f.file); });
+        });
+      });
+      var res = [];
+      lineIndex[sec] = {};
+      out.forEach(function (e) { if (Object.keys(e.values).length) { lineIndex[sec][normLabel(e.label)] = res.length; res.push(e); } });
+      return res;
+    }
+    function mergeKeyed(sec, field, list) {
+      var r = {};
+      list.forEach(function (f) {
+        var o = f.obj[sec] && f.obj[sec][field];
+        if (!o || typeof o !== 'object') return;
+        Object.keys(o).forEach(function (k) { if (primary[k] === f) r[k] = prefix(o[k], f.file); });
+      });
+      return r;
+    }
+    function mergeTop(sec, list) {
+      var r = {}, any = false;
+      list.forEach(function (f) {
+        var s = f.obj[sec];
+        if (!s || typeof s !== 'object') return;
+        Object.keys(s).forEach(function (k) { if (primary[k] === f) { r[k] = prefix(s[k], f.file); any = true; } });
+      });
+      return any ? r : null;
+    }
+    function firstOf(sec, field, list) {
+      for (var i = 0; i < list.length; i++) { var s = list[i].obj[sec]; if (s && s[field] != null) return clone(s[field]); }
+      return null;
+    }
+    function categoriesOf(sec, list) {
+      var first = firstOf(sec, 'categories', list);
+      list.forEach(function (f) {
+        var c = f.obj[sec] && f.obj[sec].categories;
+        if (c && first && JSON.stringify(c) !== JSON.stringify(first)) warnings.push(f.file + ': ' + sec + ' categories differ from the newest unit file (' + first.join(', ') + '). Use the current budget\'s categories in every unit file.');
+      });
+      return first;
+    }
+    var has = function (list, sec) { return list.some(function (f) { return f.obj[sec]; }); };
+
+    var B = has(instFr, 'B_inst_revenue') ? {
+      lines: mergeLines('B_inst_revenue', instFr),
+      total_included: mergeKeyed('B_inst_revenue', 'total_included', instFr),
+      statement_total_revenues: mergeKeyed('B_inst_revenue', 'statement_total_revenues', instFr),
+      tuition: mergeKeyed('B_inst_revenue', 'tuition', instFr)
+    } : null;
+    var D = has(instFr, 'D_inst_expenses') ? {
+      source_of_natural_classification: firstOf('D_inst_expenses', 'source_of_natural_classification', instFr),
+      lines: mergeLines('D_inst_expenses', instFr),
+      totals: mergeKeyed('D_inst_expenses', 'totals', instFr),
+      statement_total_operating_expenses: mergeKeyed('D_inst_expenses', 'statement_total_operating_expenses', instFr)
+    } : null;
+    var F = mergeTop('F_balance_sheet', instFr);
+    var A = unitKeys.length && has(unitFr, 'A_unit_expenses') ? {
+      categories: categoriesOf('A_unit_expenses', unitFr),
+      lines: mergeLines('A_unit_expenses', unitFr),
+      totals: mergeKeyed('A_unit_expenses', 'totals', unitFr)
+    } : null;
+    var C = unitKeys.length && has(unitFr, 'C_unit_revenue') ? {
+      categories: categoriesOf('C_unit_revenue', unitFr),
+      lines: mergeLines('C_unit_revenue', unitFr),
+      totals: mergeKeyed('C_unit_revenue', 'totals', unitFr)
+    } : null;
+    var E = unitKeys.length ? mergeTop('E_unit_totals', unitFr) : null;
+    var db = { A_unit_expenses: A, B_inst_revenue: B, C_unit_revenue: C, D_inst_expenses: D, E_unit_totals: E, F_balance_sheet: F };
+
+    // Chart years.
+    var cy = opts.chartYears || {};
+    var earlier = instKeys.indexOf(cy.earlier) >= 0 ? cy.earlier : (instKeys[0] || null);
+    var later = instKeys.indexOf(cy.later) >= 0 ? cy.later : (instKeys[instKeys.length - 1] || null);
+    if (instKeys.length < 2) warnings.push('Only ' + instKeys.length + ' institution year(s) available. The institution charts need two years for CAGRs.');
+    else if (earlier && later && colSortKey(colInfo[earlier]) >= colSortKey(colInfo[later])) warnings.push('The earlier chart year (' + earlier + ') is not before the later chart year (' + later + ').');
+    if (later && (!F || !F[later])) warnings.push('No balance sheet (Section F) for ' + later + '. The OFFENSE charts need it: the fragment for the ' + later + ' report should include F_balance_sheet.' + later + '.');
+    var actualKeys = unitKeys.filter(function (k) { return colInfo[k].type !== 'budget'; });
+    var budgetKeys = unitKeys.filter(function (k) { return colInfo[k].type === 'budget'; });
+    var uc = opts.unitChart || {};
+    var budget = budgetKeys.indexOf(uc.budget) >= 0 ? uc.budget : (budgetKeys[budgetKeys.length - 1] || null);
+    var oldest = actualKeys.indexOf(uc.oldest) >= 0 ? uc.oldest : (actualKeys[0] || null);
+    var prior;
+    if (uc.prior === '' || uc.prior === null) prior = null;
+    else if (actualKeys.indexOf(uc.prior) >= 0) prior = uc.prior;
+    else {
+      var pc = actualKeys.filter(function (k) { return k !== oldest && (!budget || colSortKey(colInfo[k]) < colSortKey(colInfo[budget])); });
+      prior = pc.length ? pc[pc.length - 1] : null;
+    }
+    if (unitKeys.length && !budget) warnings.push('No unit budget column found. Unit CAGRs run from the oldest actuals to the current budget.');
+
+    // Overlap checks (on values before overrides).
+    var overlap = [];
+    function push(o) { overlap.push(o); }
+    function cmp(o) {
+      var a = val(o.p), b = val(o.c), status, diff = null;
+      if (a === null && b === null) return;
+      if (a === null || b === null) status = 'ONE_NOT_FOUND';
+      else { diff = b - a; status = diff === 0 ? 'MATCH' : Math.abs(diff) <= o.tol ? 'ROUNDING' : 'MISMATCH'; }
+      push({
+        id: o.id, kind: o.kind, section: o.section, item: o.item, year: o.key, status: status, difference: diff, tolerance: o.tol,
+        primary: { v: a, src: o.p && o.p.src != null ? o.p.src : null },
+        comparative: { v: b, src: o.c && o.c.src != null ? (o.c.src === 'N/A' || o.cSum ? o.c.src : o.cFile + ': ' + o.c.src) : null, file: o.cFile, restated: !!o.restated },
+        overridable: !!o.set && status !== 'MATCH' && b !== null,
+        overridden: false,
+        _set: o.set, _c: o.c, _cFile: o.cFile
+      });
+    }
+    function sumItems(arr, field) {
+      if (!Array.isArray(arr)) return null;
+      var s = 0, n = 0;
+      arr.forEach(function (x) { var y = val(x && x[field]); if (y !== null) { s += y; n++; } });
+      return n ? s : null;
+    }
+    function eachNum(cObj, pObj, path, fn) {
+      Object.keys(cObj || {}).forEach(function (field) {
+        var cv = cObj[field], pv = pObj ? pObj[field] : undefined;
+        if (isNumObj(cv)) fn(path + field, cv, pv, pObj ? function (nv) { pObj[field] = nv; } : null, false);
+        else if (Array.isArray(cv)) {
+          var cs = sumItems(cv, 'amount');
+          if (cs !== null || sumItems(pv, 'amount') !== null) fn(path + field + ' (sum)', { v: cs, src: 'sum of items' }, { v: sumItems(pv, 'amount'), src: 'sum of items' }, null, true);
+        } else if (cv && typeof cv === 'object') eachNum(cv, pv && typeof pv === 'object' ? pv : null, path + field + '.', fn);
+      });
+    }
+
+    frags.forEach(function (f) {
+      f.obj.columns.forEach(function (c) {
+        var k = c.key, pf = primary[k];
+        if (!pf || pf === f) return;
+        var tol = Math.max(pf.unit, f.unit) / 2;
+        var base = { key: k, cFile: f.file, restated: c.restated, tol: tol };
+        function go(o) { var x = {}; Object.keys(base).forEach(function (q) { x[q] = base[q]; }); Object.keys(o).forEach(function (q) { x[q] = o[q]; }); cmp(x); }
+        var secs = f.kind === 'institution' ? ['B_inst_revenue', 'D_inst_expenses'] : ['A_unit_expenses', 'C_unit_revenue'];
+        secs.forEach(function (sec) {
+          var s = f.obj[sec], ms = db[sec];
+          if (!s || !ms) return;
+          var cLines = (s.lines || []).filter(function (l) { return l.values && k in l.values; });
+          if (!cLines.length && !TOTALS[sec].some(function (t) { return s[t] && k in s[t]; })) return;
+          cLines.forEach(function (line) {
+            var n = normLabel(line.label), i = lineIndex[sec][n];
+            if (i === undefined || !ms.lines[i].values[k]) {
+              push({ id: [sec, 'line', n, k, f.file].join('|'), kind: 'line', section: sec, item: 'Line: ' + line.label, year: k, status: 'NO_MATCHING_LINE',
+                difference: null, tolerance: tol, primary: null, comparative: { v: val(line.values[k]), src: f.file + ': ' + (line.values[k] && line.values[k].src), file: f.file, restated: !!c.restated },
+                note: 'Only in the comparative column of ' + f.file + '. Usually a renamed line: make the labels match.', overridable: false, overridden: false });
+              return;
+            }
+            var t = ms.lines[i];
+            go({ id: [sec, 'line', n, k, f.file].join('|'), kind: 'line', section: sec, item: 'Line: ' + t.label, p: t.values[k], c: line.values[k], set: function (nv) { t.values[k] = nv; } });
+          });
+          ms.lines.forEach(function (t) {
+            if (!t.values[k]) return;
+            var n = normLabel(t.label);
+            if (!cLines.some(function (l) { return normLabel(l.label) === n; })) {
+              push({ id: [sec, 'line', n, k, f.file, 'missing'].join('|'), kind: 'line', section: sec, item: 'Line: ' + t.label, year: k, status: 'NO_MATCHING_LINE',
+                difference: null, tolerance: tol, primary: { v: val(t.values[k]), src: t.values[k].src }, comparative: null,
+                note: 'Not found in the comparative column of ' + f.file + '. Usually a renamed line: make the labels match.', overridable: false, overridden: false });
+            }
+          });
+          TOTALS[sec].forEach(function (field) {
+            var co = s[field], po = ms[field];
+            if (!co || !(k in co) || !po) return;
+            go({ id: [sec, field, k, f.file].join('|'), kind: 'total', section: sec, item: 'Total: ' + field, p: po[k], c: co[k], set: function (nv) { po[k] = nv; } });
+          });
+          var gAttr = (sec === 'D_inst_expenses' || sec === 'A_unit_expenses') ? 'bucket' : 'category';
+          var groups = {}, gOrder = [];
+          function addG(g, side, x) {
+            if (!groups[g]) { groups[g] = { p: 0, c: 0, np: 0, nc: 0 }; gOrder.push(g); }
+            if (x !== null) { groups[g][side] += x; groups[g]['n' + side]++; }
+          }
+          ms.lines.forEach(function (t) { if (sec === 'B_inst_revenue' && !t.included) return; if (t.values[k]) addG(t[gAttr], 'p', val(t.values[k])); });
+          cLines.forEach(function (l) { if (sec === 'B_inst_revenue' && !l.included) return; addG(l[gAttr], 'c', val(l.values[k])); });
+          gOrder.forEach(function (g) {
+            var G = groups[g];
+            go({ id: [sec, 'group', g, k, f.file].join('|'), kind: 'group', section: sec, item: (gAttr === 'bucket' ? 'Bucket: ' : 'Category: ') + g,
+              p: { v: G.np ? G.p : null, src: 'sum of lines' }, c: { v: G.nc ? G.c : null, src: 'sum of lines' }, cSum: true,
+              tol: Math.max(pf.unit, f.unit) / 2 * Math.max(G.np, G.nc, 1), set: null });
+          });
+        });
+        if (f.kind === 'institution') {
+          var ct = f.obj.B_inst_revenue && f.obj.B_inst_revenue.tuition && f.obj.B_inst_revenue.tuition[k];
+          var pt = db.B_inst_revenue && db.B_inst_revenue.tuition && db.B_inst_revenue.tuition[k];
+          if (ct && pt) {
+            go({ id: ['B_inst_revenue', 'tuition.gross', k, f.file].join('|'), kind: 'total', section: 'B_inst_revenue', item: 'Tuition: gross', p: pt.gross, c: ct.gross, set: function (nv) { pt.gross = nv; } });
+            go({ id: ['B_inst_revenue', 'tuition.allowances', k, f.file].join('|'), kind: 'group', section: 'B_inst_revenue', item: 'Tuition: allowances (sum)',
+              p: { v: sumItems(pt.allowances, 'amount'), src: 'sum of items' }, c: { v: sumItems(ct.allowances, 'amount'), src: 'sum of items' }, cSum: true, set: null });
+          }
+          var cF = f.obj.F_balance_sheet && f.obj.F_balance_sheet[k], pF = db.F_balance_sheet && db.F_balance_sheet[k];
+          if (cF && pF) eachNum(cF, pF, '', function (path, cv, pv, set, isSum) {
+            go({ id: ['F_balance_sheet', path, k, f.file].join('|'), kind: isSum ? 'group' : 'field', section: 'F_balance_sheet', item: 'Balance sheet: ' + path, p: pv, c: cv, cSum: isSum, set: set });
+          });
+        } else {
+          var cE = f.obj.E_unit_totals && f.obj.E_unit_totals[k], pE = db.E_unit_totals && db.E_unit_totals[k];
+          if (cE && pE) eachNum(cE, pE, '', function (path, cv, pv, set) {
+            go({ id: ['E_unit_totals', path, k, f.file].join('|'), kind: 'field', section: 'E_unit_totals', item: 'Unit totals: ' + path, p: pv, c: cv, set: set });
+          });
+        }
+      });
+    });
+
+    // Overrides.
+    var overrideList = [];
+    overlap.forEach(function (o) {
+      if (o.overridable && overrides[o.id] && o._set) {
+        var nv = prefix(o._c, o._cFile, '(comparative column, used by override)');
+        o._set(nv);
+        o.overridden = true;
+        overrideList.push({ id: o.id, year: o.year, section: o.section, item: o.item, replaced: o.primary, with: { v: nv.v, src: nv.src } });
+      }
+    });
+    overlap.forEach(function (o) { delete o._set; delete o._c; delete o._cFile; });
+
+    // Arithmetic checks on the final values.
+    var checks = [];
+    function sumLines(lines, k, filter) {
+      var s = 0, n = 0;
+      (lines || []).forEach(function (l) { if (filter && !filter(l)) return; var x = val(l.values[k]); if (x !== null) { s += x; n++; } });
+      return n ? s : null;
+    }
+    function chk(name, k, a, b, tol, la, lb) {
+      var status, detail;
+      if (a === null || b === null) { status = 'N/A'; detail = 'an input is NOT FOUND or missing'; }
+      else {
+        var d = a - b;
+        status = d === 0 ? 'PASS' : Math.abs(d) <= tol ? 'PASS (rounding)' : 'FAIL';
+        detail = la + ' ' + fmt(a) + ' vs ' + lb + ' ' + fmt(b) + (d ? ' (difference ' + fmt(d) + ')' : '');
+      }
+      checks.push({ source: 'merge page', check: name, column: k, status: status, detail: detail });
+    }
+    frags.forEach(function (f) {
+      f.obj.columns.forEach(function (c) {
+        checks.push({ source: 'merge page', check: 'Year read from the printed column heading (' + f.file + ')', column: c.key,
+          status: c.heading_as_printed ? 'PASS' : 'FAIL',
+          detail: c.heading_as_printed ? '"' + c.heading_as_printed + '" at ' + (c.heading_src || '?') : 'no heading recorded; the year may come from the file name' });
+      });
+    });
+    instKeys.forEach(function (k) {
+      var u = primary[k].unit;
+      if (B) {
+        chk('B: included + excluded lines = statement total revenues', k, sumLines(B.lines, k), val(B.statement_total_revenues[k]), u, 'lines', 'statement');
+        chk('B: included lines = total included revenue', k, sumLines(B.lines, k, function (l) { return l.included; }), val(B.total_included[k]), u, 'included lines', 'total');
+      }
+      if (D) {
+        var stmt = val(D.statement_total_operating_expenses[k]);
+        var added = sumLines(D.lines, k, function (l) { return l.interest_added_from_outside_operating; }) || 0;
+        chk('D: lines = statement total operating expenses + interest added', k, sumLines(D.lines, k), stmt === null ? null : stmt + added, u, 'lines', 'statement + interest');
+        chk('D: lines = recorded total expenses', k, sumLines(D.lines, k), val(D.totals[k]), u, 'lines', 'total');
+      }
+      var fk = F && F[k];
+      if (fk) {
+        var pub = fk.net_assets_public || {}, pri = fk.net_assets_private || {};
+        var pubV = Object.keys(pub).map(function (q) { return val(pub[q]); }).filter(function (x) { return x !== null; });
+        var priV = Object.keys(pri).map(function (q) { return val(pri[q]); }).filter(function (x) { return x !== null; });
+        var classes = pubV.length ? pubV : priV;
+        chk('F: net asset classes = total net assets', k, classes.length ? classes.reduce(function (a, b) { return a + b; }, 0) : null, val(fk.total_net_assets), u, 'classes', 'total');
+      }
+    });
+    unitKeys.forEach(function (k) {
+      var u = primary[k].unit;
+      if (A) chk('A: unit expense lines = total', k, sumLines(A.lines, k), val(A.totals[k]), u, 'lines', 'total');
+      if (C) chk('C: unit revenue lines = total', k, sumLines(C.lines, k), val(C.totals[k]), u, 'lines', 'total');
+      if (E && E[k]) {
+        if (C) chk('E: unit revenue = Section C total', k, val(E[k].revenue), val(C.totals[k]), u, 'E', 'C');
+        if (A) chk('E: unit expenses = Section A total', k, val(E[k].expenses), val(A.totals[k]), u, 'E', 'A');
+      }
+    });
+    frags.forEach(function (f) {
+      (f.obj.checks || []).forEach(function (c) { checks.push({ source: f.file, check: c.check, column: c.column || null, status: c.status, detail: c.detail }); });
+    });
+
+    // Meta.
+    var newestInst = instFr[0], newestUnit = unitFr[0];
+    var m0 = ((newestInst || newestUnit) || { obj: {} }).obj.meta || {};
+    var instNames = {}, bases = {};
+    instFr.forEach(function (f) { var m = f.obj.meta || {}; if (m.institution) instNames[normLabel(m.institution)] = m.institution; if (m.basis) bases[m.basis] = 1; });
+    if (Object.keys(instNames).length > 1) warnings.push('Fragments name different institutions: ' + Object.keys(instNames).map(function (q) { return instNames[q]; }).join('; ') + '.');
+    if (Object.keys(bases).length > 1) warnings.push('Fragments give different bases: ' + Object.keys(bases).join(', ') + '.');
+    var decisions = [], seen = {};
+    frags.forEach(function (f) { ((f.obj.meta || {}).user_decisions || []).forEach(function (d) { var key = JSON.stringify(d); if (!seen[key]) { seen[key] = 1; decisions.push(d); } }); });
+    overrideList.forEach(function (o) { decisions.push({ question: 'Overlap override: ' + o.item + ', ' + o.year, answer: 'Used the comparative (restated) value ' + fmt(o.with.v) + ' instead of ' + fmt(o.replaced && o.replaced.v) + '.' }); });
+    var unitApplied = A || C || E ? 'UPLOAD' : 'SKIP';
+    var yearEnds = {};
+    instKeys.concat(unitKeys).forEach(function (k) { yearEnds[k] = colInfo[k].year_end || null; });
+
+    var meta = {
+      institution: (newestInst && newestInst.obj.meta && newestInst.obj.meta.institution) || m0.institution || null,
+      unit: (newestUnit && newestUnit.obj.meta && newestUnit.obj.meta.unit) || m0.unit || null,
+      unit_data_requested: m0.unit_data_requested || null,
+      unit_data_applied: unitApplied,
+      unit_data_reason: unitApplied === 'UPLOAD' ? ((newestUnit && newestUnit.obj.meta && newestUnit.obj.meta.unit_data_reason) || '') :
+        (m0.unit_data_requested === 'UPLOAD' ? 'Unit data was requested, but no unit fragments with data were loaded into the merge page.' : (m0.unit_data_reason || 'Unit data: SKIP')),
+      basis: (newestInst && newestInst.obj.meta && newestInst.obj.meta.basis) || m0.basis || null,
+      currency: m0.currency || null,
+      audited: instFr.length ? instFr.every(function (f) { return f.obj.file.audited === true; }) : null,
+      page_convention: 'file name: printed page [PDF page of the uploaded file]',
+      balance_sheet_years: m0.balance_sheet_years || 'LATEST',
+      files: frags.map(function (f) {
+        var fi = f.obj.file;
+        return { file: f.file, kind: f.kind, what: fi.what || '', standard: fi.standard || null, audited: fi.audited, units_in_source: fi.units_in_source || null,
+          status: fi.status || null, last_page_seen: fi.last_page_seen || null,
+          columns: f.obj.columns.map(function (c) {
+            return { key: c.key, fiscal_year: c.fiscal_year || null, type: c.type || null, role: c.role, year_end: c.year_end || null,
+              heading_as_printed: c.heading_as_printed || null, heading_src: c.heading_src || null, restated: !!c.restated, used_as_primary: primary[c.key] === f };
+          }) };
+      }),
+      inst_years: instKeys,
+      unit_columns: unitKeys.map(function (k) { return { key: k, fiscal_year: colInfo[k].fiscal_year || null, type: colInfo[k].type || null }; }),
+      year_ends: yearEnds,
+      chart_years: { earlier: earlier, later: later, years_between: earlier && later ? yearsBetween(colInfo[earlier], colInfo[later]) : null },
+      unit_chart_columns: { oldest: oldest, prior: prior, budget: budget, years_between_oldest_and_budget: oldest && budget ? yearsBetween(colInfo[oldest], colInfo[budget]) : null },
+      comparative_only_columns_used: compOnly,
+      user_decisions: decisions,
+      merged_by: 'merge.html (kit_schema database-v2)'
+    };
+
+    var out = {
+      kit_schema: 'database-v2',
+      meta: meta,
+      A_unit_expenses: A, B_inst_revenue: B, C_unit_revenue: C, D_inst_expenses: D, E_unit_totals: E, F_balance_sheet: F,
+      overlap_checks: overlap,
+      overrides: overrideList,
+      classification_differences: classDiffs,
+      checks: checks,
+      judgment_calls: [].concat.apply([], frags.map(function (f) { return (f.obj.judgment_calls || []).map(function (j) { return f.file + ': ' + j; }); })),
+      not_found: [].concat.apply([], frags.map(function (f) { return (f.obj.not_found || []).map(function (x) { var r = { file: f.file }; Object.keys(x).forEach(function (q) { r[q] = x[q]; }); return r; }); }))
+    };
+    return {
+      db: frags.length ? out : null,
+      warnings: warnings, info: info, notes: notes,
+      choices: { instKeys: instKeys, actualKeys: actualKeys, budgetKeys: budgetKeys },
+      needsReview: function (o) { return !!NEEDS_REVIEW[o.status]; }
+    };
+  }
+
+  return { parseInputs: parseInputs, merge: merge, normLabel: normLabel, NEEDS_REVIEW: NEEDS_REVIEW };
+})();
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var state = { inputs: [], nextId: 1, overrides: {}, chartYears: {}, unitChart: {}, comp: { institution: false, unit: true }, onlyProblems: true };
+  var $ = function (id) { return document.getElementById(id); };
+  var last = null;
+
+  function el(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'class') e.className = attrs[k];
+      else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] !== false && attrs[k] != null) e.setAttribute(k, attrs[k] === true ? '' : attrs[k]);
+    });
+    (kids || []).forEach(function (c) { if (c != null) e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return e;
+  }
+  function money(n) { return n == null ? 'NOT FOUND' : (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US'); }
+  function pillClass(s) {
+    if (/^(MATCH|PASS|OK$)/.test(s)) return 's-ok';
+    if (/^(ROUNDING)/.test(s)) return 's-ok';
+    if (/^(N\/A)/.test(s)) return 's-na';
+    if (/^(NO_MATCHING_LINE|ONE_NOT_FOUND)/.test(s)) return 's-warn';
+    return 's-bad';
+  }
+  function pill(s) { return el('span', { class: 'pill ' + pillClass(s), text: s }); }
+  function table(head, rows) {
+    return el('div', { class: 'table-wrap' }, [el('table', {}, [
+      el('thead', {}, [el('tr', {}, head.map(function (h) { return el('th', { text: h }); }))]),
+      el('tbody', {}, rows)
+    ])]);
+  }
+  function cellMoney(o) {
+    if (!o) return el('td', { class: 'num', text: '-' });
+    return el('td', { class: 'num' }, [money(o.v), o.src ? el('span', { class: 'src', text: o.src }) : null]);
+  }
+
+  function addInput(name, text) { state.inputs.push({ id: state.nextId++, name: name, text: text }); render(); }
+
+  function renderInputs() {
+    var ol = $('inputs'); ol.textContent = '';
+    state.inputs.forEach(function (it, i) {
+      ol.appendChild(el('li', {}, [it.name + ' (' + it.text.length.toLocaleString('en-US') + ' characters)',
+        el('button', { type: 'button', text: 'Remove', onclick: function () { state.inputs.splice(i, 1); render(); } })]));
+    });
+  }
+
+  function render() {
+    renderInputs();
+    if (!state.inputs.length) { $('results').hidden = true; last = null; document.body.setAttribute('data-status', 'empty'); return; }
+    var p = KitMerge.parseInputs(state.inputs.map(function (x) { return { name: x.name, text: x.text }; }));
+    var r = KitMerge.merge(p.parsed, {
+      overrides: Object.keys(state.overrides).filter(function (k) { return state.overrides[k]; }),
+      useComparativeOnly: state.comp, chartYears: state.chartYears, unitChart: state.unitChart
+    });
+    last = r;
+    $('results').hidden = false;
+
+    var pm = $('parseMsgs'); pm.textContent = '';
+    p.errors.forEach(function (m) { pm.appendChild(el('li', { class: 'w', text: m })); });
+    p.notes.concat(r.notes).forEach(function (m) { pm.appendChild(el('li', { text: m })); });
+
+    var db = r.db;
+    var ms = $('msgs'); ms.textContent = '';
+    r.warnings.forEach(function (m) { ms.appendChild(el('li', { class: 'w', text: m })); });
+    r.info.forEach(function (m) { ms.appendChild(el('li', { text: m })); });
+
+    var ft = $('filesTable'); ft.textContent = '';
+    if (!db) {
+      ft.appendChild(el('p', { class: 'empty', text: 'No usable fragments yet.' }));
+      ['overlapTable', 'classTable', 'checksTable', 'overlapSummary', 'yearPick'].forEach(function (id) { $(id).textContent = ''; });
+      $('jsonView').textContent = ''; $('download').disabled = true;
+      document.body.setAttribute('data-status', 'no-data');
+      return;
+    }
+    $('download').disabled = false;
+    var rows = [];
+    db.meta.files.forEach(function (f) {
+      f.columns.forEach(function (c, i) {
+        rows.push(el('tr', {}, [
+          el('td', { text: i === 0 ? f.file : '' }),
+          el('td', { text: i === 0 ? f.kind + (f.units_in_source ? ', ' + f.units_in_source : '') : '' }),
+          el('td', {}, [i === 0 ? pill(f.status || '?') : null]),
+          el('td', { text: c.key }),
+          el('td', { text: c.role + (c.restated ? ' (restated)' : '') }),
+          el('td', {}, [c.heading_as_printed ? '"' + c.heading_as_printed + '"' : pill('NO HEADING'), c.heading_src ? el('span', { class: 'src', text: c.heading_src }) : null]),
+          el('td', { text: c.used_as_primary ? 'yes' : 'cross-check only' })
+        ]));
+      });
+    });
+    ft.appendChild(table(['File', 'Kind', 'Status', 'Column', 'Role', 'Heading as printed', 'Used for charts'], rows));
+
+    // Year pickers.
+    var yp = $('yearPick'); yp.textContent = '';
+    function picker(label, options, current, onchange, allowNone) {
+      var s = el('select', { onchange: function (e) { onchange(e.target.value); render(); } });
+      if (allowNone) s.appendChild(el('option', { value: '', text: 'None' }));
+      options.forEach(function (k) { var o = el('option', { value: k, text: k }); if (k === current) o.selected = true; s.appendChild(o); });
+      if (allowNone && !current) s.value = '';
+      return el('label', {}, [label, s]);
+    }
+    var cy = db.meta.chart_years, uc = db.meta.unit_chart_columns;
+    if (r.choices.instKeys.length) {
+      yp.appendChild(picker('Earlier year', r.choices.instKeys, cy.earlier, function (v) { state.chartYears.earlier = v; }));
+      yp.appendChild(picker('Later year', r.choices.instKeys, cy.later, function (v) { state.chartYears.later = v; }));
+    }
+    if (r.choices.actualKeys.length || r.choices.budgetKeys.length) {
+      yp.appendChild(picker('Oldest actuals', r.choices.actualKeys, uc.oldest, function (v) { state.unitChart.oldest = v; }));
+      yp.appendChild(picker('Prior-year actuals', r.choices.actualKeys, uc.prior, function (v) { state.unitChart.prior = v; }, true));
+      yp.appendChild(picker('Current budget', r.choices.budgetKeys, uc.budget, function (v) { state.unitChart.budget = v; }));
+    }
+    yp.appendChild(el('p', { class: 'hint', text: 'Years between: institution ' + (cy.years_between == null ? 'n/a' : cy.years_between) +
+      (uc.budget ? '; unit oldest to budget ' + (uc.years_between_oldest_and_budget == null ? 'n/a' : uc.years_between_oldest_and_budget) : '') + '.' }));
+
+    // Overlap.
+    var counts = {};
+    db.overlap_checks.forEach(function (o) { counts[o.status] = (counts[o.status] || 0) + 1; });
+    var os = $('overlapSummary'); os.textContent = '';
+    if (!db.overlap_checks.length) os.appendChild(el('span', { class: 'empty', text: 'No year appears in two loaded files, so there is nothing to cross-check.' }));
+    Object.keys(counts).sort().forEach(function (s) { os.appendChild(el('span', { class: 'pill ' + pillClass(s), text: s + ': ' + counts[s] })); });
+    if (db.classification_differences.length) os.appendChild(el('span', { class: 'pill s-warn', text: 'CLASSIFICATION DIFFERS: ' + db.classification_differences.length }));
+    var orows = db.overlap_checks.filter(function (o) { return !state.onlyProblems || KitMerge.NEEDS_REVIEW[o.status] || o.overridden; }).map(function (o) {
+      var box = null;
+      if (o.overridable) {
+        box = el('label', { class: 'check' }, [el('input', { type: 'checkbox', checked: !!state.overrides[o.id], onchange: function (e) { state.overrides[o.id] = e.target.checked; render(); } }), 'Use comparative value']);
+      }
+      return el('tr', {}, [
+        el('td', { text: o.year }),
+        el('td', {}, [o.item, el('span', { class: 'src', text: o.section + (o.note ? '. ' + o.note : '') })]),
+        el('td', {}, [pill(o.overridden ? 'OVERRIDDEN' : o.status), box]),
+        el('td', { class: 'num', text: o.difference == null ? '' : money(o.difference) }),
+        cellMoney(o.primary), cellMoney(o.comparative ? { v: o.comparative.v, src: o.comparative.src + (o.comparative.restated ? ' (restated)' : '') } : null)
+      ]);
+    });
+    var ot = $('overlapTable'); ot.textContent = '';
+    if (orows.length) ot.appendChild(table(['Year', 'Item', 'Status', 'Difference', "Year's own report", 'Comparative column'], orows));
+    else if (db.overlap_checks.length) ot.appendChild(el('p', { class: 'empty', text: 'Nothing needs review. Untick the box above to see every comparison.' }));
+    var ct = $('classTable'); ct.textContent = '';
+    if (db.classification_differences.length) {
+      ct.appendChild(el('p', { text: 'The same line was classified differently in different files. The newest file\'s classification is used for every year; correct the other fragment if that is wrong.' }));
+      ct.appendChild(table(['Section', 'Line', 'Attribute', 'Used', 'Other file says'], db.classification_differences.map(function (d) {
+        return el('tr', {}, [el('td', { text: d.section }), el('td', { text: d.line }), el('td', { text: d.attribute }),
+          el('td', {}, [String(d.kept), el('span', { class: 'src', text: d.kept_from })]), el('td', {}, [String(d.other), el('span', { class: 'src', text: d.other_from })])]);
+      })));
+    }
+
+    // Checks.
+    var ck = $('checksTable'); ck.textContent = '';
+    ck.appendChild(table(['Source', 'Check', 'Column', 'Status', 'Detail'], db.checks.map(function (c) {
+      return el('tr', {}, [el('td', { text: c.source }), el('td', { text: c.check }), el('td', { text: c.column || '' }), el('td', {}, [pill(String(c.status))]), el('td', { text: c.detail || '' })]);
+    })));
+
+    $('jsonView').textContent = JSON.stringify(db, null, 2);
+    document.body.setAttribute('data-status', 'ready');
+    document.body.setAttribute('data-inst-years', db.meta.inst_years.join(','));
+    document.body.setAttribute('data-mismatches', String(counts.MISMATCH || 0));
+  }
+
+  // Loading.
+  function readFiles(list) {
+    var files = Array.prototype.slice.call(list);
+    Promise.all(files.map(function (f) {
+      return new Promise(function (res) { var r = new FileReader(); r.onload = function () { res({ name: f.name, text: String(r.result) }); }; r.onerror = function () { res({ name: f.name, text: '' }); }; r.readAsText(f); });
+    })).then(function (items) { items.forEach(function (it) { state.inputs.push({ id: state.nextId++, name: it.name, text: it.text }); }); render(); });
+  }
+  $('files').addEventListener('change', function (e) { readFiles(e.target.files); e.target.value = ''; });
+  var drop = $('drop');
+  ['dragenter', 'dragover'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function (e) { if (e.dataTransfer && e.dataTransfer.files.length) readFiles(e.dataTransfer.files); });
+  document.querySelector('label[for="files"]').addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('files').click(); } });
+  $('addPaste').addEventListener('click', function () { var t = $('paste').value; if (t.trim()) { addInput('Pasted text ' + state.nextId, t); $('paste').value = ''; } });
+  $('demoBtn').addEventListener('click', loadDemo);
+  $('clear').addEventListener('click', function () { state.inputs = []; state.overrides = {}; state.chartYears = {}; state.unitChart = {}; render(); });
+  $('compInst').addEventListener('change', function (e) { state.comp.institution = e.target.checked; render(); });
+  $('compUnit').addEventListener('change', function (e) { state.comp.unit = e.target.checked; render(); });
+  $('onlyProblems').addEventListener('change', function (e) { state.onlyProblems = e.target.checked; render(); });
+  $('download').addEventListener('click', function () {
+    if (!last || !last.db) return;
+    var blob = new Blob([JSON.stringify(last.db, null, 2) + '\n'], { type: 'application/json' });
+    var a = el('a', { href: URL.createObjectURL(blob), download: 'database.json' });
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  });
+  function loadDemo() {
+    var demo = JSON.parse($('demo-data').textContent);
+    demo.forEach(function (f) { state.inputs.push({ id: state.nextId++, name: 'demo: ' + f.file.file, text: JSON.stringify(f, null, 1) }); });
+    render();
+  }
+  if (location.hash === '#demo') loadDemo(); else render();
+})();
+</script>
+</body>
+</html>

@@ -18,13 +18,15 @@ DATA AND CALCULATION
 3. Write one function per chart, named render_101_1, render_101_2, ... render_DEFENSE_1, plus render_summary. Each reads only the JSON.
 4. A JSON value of null is NOT FOUND or N/A. Apply the spec's n/m and "can't be made" rules; never substitute zero.
 5. If meta.unit_data_applied is SKIP, each unit chart shows only the spec's skip line.
+6. The JSON has kit_schema "database-v2". Amounts are stored by column key under "values", "totals", and similar objects. "Earlier year," "later year," and "both audited years" mean the selected earlier and later institution years, which default to meta.chart_years.earlier and meta.chart_years.later. "Oldest actuals," "prior-year actuals," and "current budget" mean the selected unit columns, which default to meta.unit_chart_columns (oldest, prior, budget). "Most recent audited year" means the selected later year, so Section F is F_balance_sheet[later year]. Years between two columns = the months between their meta.year_ends dates ÷ 12. Chart 201.1 also plots every year in meta.inst_years between the earlier and later year.
 
 PAGE LAYOUT
 - Top: institution name, unit name, fiscal years, and audited status from meta.
+- Year selectors at the top: "Earlier year" and "Later year" dropdowns listing meta.inst_years, and "Oldest actuals," "Prior-year actuals" (with a None option), and "Current budget" dropdowns listing meta.unit_columns. Changing one recalculates and re-renders every chart, table, sentence, and the Calculation check. If no balance sheet exists for the selected later year, the OFFENSE charts say so instead of drawing.
 - A left-side or top menu linking to each chart, the DATA SUMMARY, and the DATABASE panel.
 - Each chart section: the one-line "Chart number: Title" text, the chart with its title and subtitle drawn inside the chart area, the table of values, then the one sentence. Nothing else.
-- DATA SUMMARY section: items 1–5 from the spec, built from meta, checks, judgment_calls, not_found, and src values.
-- DATABASE panel: a read-only view of the JSON; a "Load database.json" file button that replaces the data and re-renders every chart; a "Download JSON" button.
+- DATA SUMMARY section: items 1–5 from the spec, built from meta, checks, overlap_checks, overrides, classification_differences, judgment_calls, not_found, and src values.
+- DATABASE panel: a read-only view of the JSON; a "Load database.json" file button that replaces the data and re-renders every chart (it accepts only kit_schema "database-v2"; for anything else it shows a message and keeps the current data); a "Download JSON" button.
 - A "Calculation check" table listing every computed total, CAGR, and ratio, so I can compare it to Stage 4.
 - Print: each chart section on its own page.
 
@@ -35,4 +37,4 @@ OUTPUT
 - After the HTML, list any spec item you could not reproduce in Plotly, with the reason. Then stop.
 
 JSON DATABASE:
-<paste the full corrected database.json here>
+<paste the full database.json from the merge page here>

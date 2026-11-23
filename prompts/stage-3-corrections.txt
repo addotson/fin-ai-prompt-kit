@@ -1,4 +1,4 @@
-STAGE 3 CORRECTIONS. Apply only these changes to the JSON database, re-run the CHECKS that the changes affect, and reprint the full corrected JSON in the same schema. Do not change any other value.
+STAGE 3 CORRECTIONS. Apply only these changes to the fragment for <file name>, re-run the CHECKS that the changes affect, and reprint that full corrected fragment in the same schema. Do not change any other value or any other fragment.
 
-1. <field path, e.g. D_inst_expenses.lines["Supplies and services"].later> should be <amount> per <page>.
+1. <field path, e.g. D_inst_expenses.lines["Supplies and services"].values.FY2025> should be <amount> per <page>.
 2. ...

@@ -1,10 +1,12 @@
 STAGE 4 OF 5: DRAW THE 12 CHARTS FROM THE JSON DATABASE BELOW.
 
-DATA SOURCE: Use only the JSON database pasted at the end of this message. Do not re-read the uploaded files for numbers. Do not change any value in the JSON. Each "v" is whole dollars; each "src" is the citation. Section names in the rules map to JSON keys: Section A = A_unit_expenses, B = B_inst_revenue, C = C_unit_revenue, D = D_inst_expenses, E = E_unit_totals, F = F_balance_sheet. Institution and unit names, fiscal years, basis (public GASB vs. private FASB), audited status, and Unit data choice are in "meta". A null value is NOT FOUND or N/A.
+DATA SOURCE: Use only the JSON database pasted at the end of this message (kit_schema "database-v2", built by the merge page). Do not re-read the uploaded files for numbers. Do not change any value in the JSON. Each "v" is whole dollars; each "src" is the citation, starting with the file name. Section names in the rules map to JSON keys: Section A = A_unit_expenses, B = B_inst_revenue, C = C_unit_revenue, D = D_inst_expenses, E = E_unit_totals, F = F_balance_sheet. Institution and unit names, basis (public GASB vs. private FASB), audited status, and Unit data choice are in "meta". A null value is NOT FOUND or N/A.
+
+YEARS: Amounts are stored by column key under "values", "totals", and similar objects. "Earlier year," "later year," and "both audited years" mean meta.chart_years.earlier and meta.chart_years.later; the years between them is meta.chart_years.years_between. "Oldest actuals," "prior-year actuals," and "current budget" mean the column keys in meta.unit_chart_columns (oldest, prior, budget); the years between oldest and budget is meta.unit_chart_columns.years_between_oldest_and_budget. If meta.unit_chart_columns.prior is null, draw the unit charts with the two years you have and say so under each one. "Most recent audited year" means meta.chart_years.later, so Section F is F_balance_sheet[meta.chart_years.later]. meta.inst_years lists every institution year in the database.
 
 Do not ask me questions in this stage. Extract nothing new: your job is to calculate and draw. Do not analyze or interpret.
 
-===== BEGIN ORIGINAL RULES (unchanged) =====
+===== BEGIN ORIGINAL RULES (edited for extra years) =====
 Draw the 12 charts in order, following the CHART RULES. After the last chart, print the DATA SUMMARY.
 If you run out of room in a response, stop after a complete chart and write "Type continue for the
 next chart." Never stop partway through a chart.
@@ -98,7 +100,9 @@ Under the chart, the tables show all three years.
 CHART 201.1: REVENUE AND EXPENSE GROWTH / SURPLUS OR DEFICIT (institution)
 Data: total included revenue (Section B) and total expenses (Section D), both audited years.
 Surplus or deficit = revenue − expenses; margin = surplus or deficit ÷ revenue. CAGRs of
-revenue and expenses.
+revenue and expenses. If meta.inst_years includes years between the earlier and later year, plot
+those years too, spaced by the actual time between them, and add them to the table under the
+chart; the CAGRs still use only the earlier and later year.
 Two panels stacked, sharing a fiscal-year axis. Top (two-thirds of the height): revenue line in a
 dark color and expense line in a contrasting color, neither red nor green; label each marker with
 its dollars; label each line's CAGR at its right end; start the vertical axis just below the lowest
@@ -212,11 +216,12 @@ years you had.
 assets; unit revenue and expenses.
 3. Judgment calls: revenue lines you excluded, lines that mix buckets, and how you placed
 amortization and scholarship allowances.
-4. Anything NOT FOUND, any check that failed, and anything you were unsure about.
+4. Anything NOT FOUND, any check that failed, any overlap mismatch between two reports of the
+same year and how it was resolved, and anything you were unsure about.
 5. The five largest numbers you used, with page citations, so I can spot-check them.
 ===== END ORIGINAL RULES =====
 
-DATA SUMMARY SOURCE: take items 1–4 from the JSON's meta, checks, judgment_calls, and not_found, and the citations from each value's "src".
+DATA SUMMARY SOURCE: take items 1–4 from the JSON's meta, checks, overlap_checks, overrides, classification_differences, judgment_calls, and not_found, and the citations from each value's "src".
 
 JSON DATABASE:
-<paste the full corrected database.json here>
+<paste the full database.json from the merge page here>

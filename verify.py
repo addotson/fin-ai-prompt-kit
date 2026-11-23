@@ -4,7 +4,9 @@
   2. the text in index.html's <pre> that the Copy button reads (static HTML parse),
   3. the text the Copy button's own JS function returns in a real browser
      (headless Chrome, if installed).
-Exit code 0 only if every comparison passes. Run: python3 verify.py
+Then runs the merge-page tests (node tests/test_merge.mjs) and loads merge.html#demo
+in headless Chrome to confirm the page renders.
+Exit code 0 only if everything passes. Run: python3 verify.py
 """
 import json
 import re
@@ -65,6 +67,41 @@ def browser_texts():
     return {k: v.encode("utf-8") for k, v in json.loads(p.texts["v"]).items()}, chrome
 
 
+def merge_checks(chrome):
+    ok = True
+    print("\nMerge page")
+    node = shutil.which("node")
+    if not node:
+        print("  logic tests: FAIL (node not found)")
+        ok = False
+    else:
+        r = subprocess.run([node, str(ROOT / "tests" / "test_merge.mjs")], capture_output=True, text=True, timeout=120)
+        last = (r.stdout.strip().splitlines() or ["no output"])[-1]
+        print(f"  logic tests: {'PASS' if r.returncode == 0 else 'FAIL'} ({last})")
+        if r.returncode != 0:
+            print(r.stdout + r.stderr)
+            ok = False
+    if chrome:
+        url = (ROOT / "merge.html").as_uri() + "#demo"
+        r = subprocess.run([chrome, "--headless=new", "--disable-gpu", "--virtual-time-budget=3000", "--dump-dom", url],
+                           capture_output=True, timeout=60)
+        m = re.search(rb'<body[^>]*data-status="([^"]+)"[^>]*>', r.stdout)
+        years = re.search(rb'data-inst-years="([^"]*)"', r.stdout)
+        mism = re.search(rb'data-mismatches="([^"]*)"', r.stdout)
+        good = bool(m and m.group(1) == b"ready" and years and years.group(1) == b"FY2021,FY2025,FY2026"
+                    and mism and int(mism.group(1)) > 0)
+        print(f"  demo renders in browser: {'PASS' if good else 'FAIL'}"
+              f" (status={m.group(1).decode() if m else None}, years={years.group(1).decode() if years else None},"
+              f" mismatches={mism.group(1).decode() if mism else None})")
+        ok &= good
+    else:
+        print("  demo renders in browser: SKIP (no Chrome)")
+    idx = (ROOT / "index.html").read_text(encoding="utf-8")
+    link = 'href="merge.html"' in idx
+    print(f"  index.html links to merge.html: {'PASS' if link else 'FAIL'}")
+    return ok and link
+
+
 def first_diff(a, b):
     for i, (x, y) in enumerate(zip(a, b)):
         if x != y:
@@ -106,6 +143,8 @@ def main():
         ok &= all(v is not False for v in res.values())
 
     print(f"Browser check: {'ran with ' + binfo if btexts is not None else 'skipped (' + binfo + ')'}")
+
+    ok &= merge_checks(binfo if btexts is not None else None)
     print("RESULT:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 

@@ -7,3 +7,4 @@ database*.json
 answer_key*.json
 dashboard*.html
 .DS_Store
+fragment*.json

@@ -1,28 +1,50 @@
-STAGE 1 OF 5: FILE INVENTORY AND QUESTIONS. Do not extract numbers or draw anything yet.
+STAGE 1 OF 5: FILE INVENTORY, COVERAGE CHECK, AND QUESTIONS. Do not extract numbers or draw anything yet.
 
 My institution: ________ My unit: ________
 Unit data: ________ (write UPLOAD or SKIP)
 
-This is the first of five stages. Later stages will extract data into a JSON database, draw 12 charts, and build an HTML dashboard. In this stage you only identify files and ask me the decisions you need.
+This is the first of five stages. Later stages will extract each file into a JSON fragment, combine the fragments into one database, draw 12 charts, and build an HTML dashboard. In this stage you only identify files, prove what you can read, and ask me the decisions you need.
 
 WHAT I'VE PROVIDED
-- Two years of my institution's audited financial statements: the most recent year, and one from
-about three years earlier.
+- Audited financial statements for two or more of my institution's fiscal years. Each report usually
+shows two years side by side: the year it covers and the year before.
 - Optional: my institution's most recent bond rating report.
-- If Unit data is UPLOAD: my unit's current budget, its prior-year actuals, and its actuals from
-about three years before the current budget, in one to three files.
+- If Unit data is UPLOAD: my unit's current budget and one or more years of its actuals, in one or
+more files.
 - If Unit data is SKIP: no unit data. Skip the five unit charts.
 
+FISCAL YEARS COME FROM THE PAGE, NOT THE FILE NAME
+Read every fiscal year from the column headings printed on the statement pages (for example "June 30, 2025" or "2025"). Never take a year from a file name, a cover page, or what I typed. Label each fiscal year "FY" plus the calendar year in which it ends: a year ending June 30, 2025 is FY2025.
+
 DO THIS
-1. Identify each file: what it is, the fiscal year it covers and its year-end, its units (dollars,
-thousands, or millions), its accounting standard (GASB, FASB, IFRS, or other), and whether it is
-audited. Use the names I typed above; if I left them blank, use the names in the files.
-2. For each file, state whether you can read its text and tables. If a file is a scanned image you cannot read reliably, say so. Do not guess its contents.
-3. State the page convention you will use: printed page number as shown on the page, followed by the PDF page in brackets, for example "p. 23 [PDF 31]".
-4. Print a table: File name | What it is | Fiscal year | Year-end | Units | Standard | Audited? | Readable?
-5. State which unit years you have (oldest actuals, prior-year actuals, current budget). If Unit data is UPLOAD but no unit files are present, say Unit data will be treated as SKIP.
-6. List any item whose absence will prevent a specific chart, naming the chart. Do not ask me to upload it. Later stages will proceed without it.
-7. Ask me only the questions below that apply to these files, numbered, one line each, with your proposed default answer in brackets. Ask nothing else.
+1. Identify each file: what it is, its units (dollars, thousands, or millions), its accounting standard
+(GASB, FASB, IFRS, or other), and whether it is audited. Use the names I typed above; if I left them
+blank, use the names in the files.
+2. PROVE WHAT YOU CAN READ. For each file, give the last printed page number you can actually see, with its PDF page in brackets, and quote the first full sentence or table row on that page word for word. Then give the file's last page according to its table of contents or page footers (for example "Page 98 of 98"), if shown. If you can see only part of the file, if the text stops partway, or if a page is a scanned image you cannot read reliably, mark the file TRUNCATED or UNREADABLE. Do not guess at anything you cannot see.
+3. COVERAGE TABLE. For each institution report, print: Item | Printed page [PDF page], or NOT VISIBLE. Items:
+   - Statement of net position (public) or statement of financial position (private)
+   - Statement of revenues, expenses, and changes in net position (public) or statement of activities (private)
+   - Statement of cash flows
+   - Operating expenses by natural classification (statement or note)
+   - Capital assets note
+   - Long-term debt note (bonds, notes payable, leases)
+   - Cash and investments note
+   - Scholarship allowance disclosure (for example "net of scholarship allowances of $___")
+   - Pension and OPEB note (public only)
+   - Liquidity note (private only)
+   - Discretely presented foundation statements, if any (public only)
+   For each unit file, list the pages or sheets with the budget or actuals tables.
+4. YEAR MAP. Print a table: File name | What it is | Own year (the year the file covers) | Comparative year | Column headings as printed, with page | Year-end | Units | Standard | Audited? | Status (OK, TRUNCATED, or UNREADABLE). Mark a comparative column "restated" if its heading says so. Then list each fiscal year found, the file that covers it (its primary source), and any other file that also shows it as a comparative column. Those overlaps will be cross-checked later.
+5. IF ANY FILE IS TRUNCATED OR UNREADABLE, print PAGES TO KEEP for that file:
+   - Use the file's table of contents to find the printed page ranges of the basic financial statements and of each note in the coverage list, and convert them to PDF page ranges.
+   - List what can be removed, with page ranges: transmittal letters, management's discussion and analysis, required supplementary information schedules, combining and supplementary schedules, the statistical section, and single audit or federal awards reports.
+   - Write one line I can type into a print dialog's page box, for example "PDF pages to keep: 18-24, 26-31, 40-44, 58-61".
+   - If you cannot see the table of contents, say so and list the section names I should keep instead.
+   Then tell me to save a trimmed copy with only those pages, upload it in place of the original, and paste this Stage 1 prompt again. Stop there. Do not ask the questions below until every file is OK.
+6. State which unit years you have (actuals years and budget year), read from the column headings. If Unit data is UPLOAD but no unit files are present, say Unit data will be treated as SKIP.
+7. List any item whose absence will prevent a specific chart, naming the chart. Do not ask me to upload it. Later stages will proceed without it.
+8. State the page convention you will use: printed page number as shown on the page, followed by the PDF page of the uploaded file in brackets, for example "p. 23 [PDF 31]".
+9. Ask me only the questions below that apply to these files, numbered, one line each, with your proposed default answer in brackets. Ask nothing else.
    a. Private (FASB): does the statement of activities present an operating measure (case a) or not (case b)? State which you found and ask me to confirm.
    b. Public (GASB): is there a discretely presented foundation that holds gifts and endowment? Confirm it should be included where the spec says.
    c. Are hospital or health system amounts in separate columns? Confirm you will use academic columns only.
@@ -30,7 +52,10 @@ audited. Use the names I typed above; if I left them blank, use the names in the
    e. Scholarship allowances: are they combined with housing or other revenue? Is a tuition-only portion disclosed?
    f. Unit budget: list the current budget's expense categories and revenue categories as you found them. If there are more than 8, propose which to combine.
    g. Unit actuals: list any actuals line you cannot map to a current-budget category, with your proposed category.
-   h. Any file whose fiscal year does not match what I described.
-8. End with: "Answer the questions above, or reply DEFAULTS to accept all bracketed defaults. Then paste the Stage 2 prompt." Then stop.
+   h. Any file whose fiscal year, read from its column headings, differs from its file name or from what I described.
+   i. Two files that cover the same own year: which one to use.
+   j. Balance sheet years: LATEST (most recent year only) or ALL (every year, which adds a balance-sheet cross-check but makes each extraction longer). [LATEST]
+10. End with: "Answer the questions above, or reply DEFAULTS to accept all bracketed defaults." Then stop.
+11. When I answer, reply only with a STAGE 1 DECISIONS block in a code block: institution, unit, Unit data applied, basis (GASB, FASB case a, FASB case b, IFRS, or other), currency, page convention, balance sheet years, the year map table, the unit categories, and every question with its final answer. After it, write: "Save this block. Then paste the Stage 2 prompt." Then stop.
 
 Never invent, sample, or estimate any number. Never use an example or hypothetical institution or department.

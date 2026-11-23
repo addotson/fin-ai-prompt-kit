@@ -1,19 +1,26 @@
-STAGE 2 OF 5: EXTRACT DATA INTO A JSON DATABASE. Do not draw charts. Do not calculate CAGRs or ratios.
+STAGE 2 OF 5: EXTRACT EACH FILE INTO A JSON FRAGMENT, ONE FILE PER RESPONSE. Do not draw charts. Do not calculate CAGRs or ratios.
 
-Use the file identifications and my answers from Stage 1. If I replied DEFAULTS, use your bracketed defaults.
+STAGE 1 DECISIONS: use the STAGE 1 DECISIONS block from this chat. If this is a new chat, I have pasted it here:
+<paste the STAGE 1 DECISIONS block here, or leave this line as is in the same chat>
 
 Never ask me to upload anything else. If something is missing, work with what you have, and
 never fill the gap with invented, sample, or example numbers.
 Unit data comes only from my unit files. If Unit data is UPLOAD but no unit budget or actuals files
 are among the uploads, treat Unit data as SKIP and say so. Never invent a unit, never use an
 example or hypothetical department, and never use institution-wide numbers, or a share of them,
-in place of unit data. If the unit files have the current budget and the oldest actuals but not the
-prior-year actuals, draw the unit charts with the two years you have and say so under each one.
+in place of unit data.
 
-===== BEGIN ORIGINAL RULES (unchanged) =====
+ONE FILE AT A TIME
+- Extract one file per response, in the order of the Stage 1 year map: newest institution report first, then older reports, then unit files. The bond rating report gets no fragment of its own; its three items go into the fragment of the most recent institution report.
+- Before extracting a file, re-read the column headings on its statement pages. Each column's fiscal year comes from its printed heading, never from the file name. Label it "FY" plus the calendar year in which it ends.
+- Finish reading a section's source pages before writing that section's JSON.
+
+===== BEGIN ORIGINAL RULES (edited to record every year column) =====
 EXTRACTION RULES
-- Audited statements show two years side by side. Use only the column for the fiscal year that file
-covers.
+- Audited statements show two years side by side. Read each column's fiscal year from its printed
+heading. The column for the fiscal year that file covers is its own column and supplies that
+year's values. Also record the comparative column, labeled with its own fiscal year, for
+cross-checking only. If its heading says "restated" or "as restated," record that.
 - Convert all amounts to whole dollars.
 - Record the page number, or the sheet and row, for every number.
 - Never estimate. If you can't find an item, record NOT FOUND.
@@ -26,16 +33,16 @@ statements' currency.
 records them as both revenue and expense, exclude those amounts from both totals.
 - If the statements show the academic enterprise and a hospital or health system in separate
 columns or segments, use only the academic columns.
-SECTION A: UNIT OPERATING EXPENSES (oldest actuals, prior-year actuals, current budget)
-Every operating expense line, as labeled, with its amount in each of the three years. For each
+SECTION A: UNIT OPERATING EXPENSES (every year column in the unit file, actuals or budget)
+Every operating expense line, as labeled, with its amount in each year column. For each
 line:
 1. CATEGORY: no more than 8, using the current budget's own groupings. Assign the lines from
-both actuals years to the same categories.
+every actuals year to the same categories.
 2. BUCKET: PEOPLE (salaries, wages, benefits, payroll taxes, stipends); SPACE (space or
 occupancy charges, rent, utilities, maintenance and repairs, depreciation, interest); STUFF
 (everything else).
-Total operating expenses for each year.
-SECTION B: INSTITUTION REVENUES (both audited years)
+Total operating expenses for each year column.
+SECTION B: INSTITUTION REVENUES (the file's own year and its comparative year)
 Every revenue line, operating and nonoperating, as labeled, with its amount. For each line:
 1. INCLUDED or EXCLUDED. Exclude capital appropriations, capital gifts and grants, additions
 to permanent endowments, and unrealized investment gains or losses. Include everything else
@@ -53,17 +60,17 @@ exclude it. Say which case applies.
 allowances); Government appropriations; Grants and contracts (including research and Pell);
 Gifts and contributions; Endowment and investment income used for operations; Auxiliary
 enterprises; Patient care / hospital; Other.
-Total included revenue for each year.
-TUITION DETAIL for each year: gross tuition and fees before discounts; each scholarship
+Total included revenue for each year column.
+TUITION DETAIL for each year column: gross tuition and fees before discounts; each scholarship
 allowance or institutional aid line subtracted from tuition; and whether those allowances also
 cover other revenue such as housing. If gross tuition isn't on the face of the statements, look in
 the notes or for a phrase such as "net of scholarship allowances of $___."
-SECTION C: UNIT REVENUES (oldest actuals, prior-year actuals, current budget)
-Every revenue line, as labeled, with its amount in each of the three years, including allocations or
+SECTION C: UNIT REVENUES (every year column in the unit file)
+Every revenue line, as labeled, with its amount in each year column, including allocations or
 transfers from the central institution. Use the current budget's categories, no more than 8,
-combining the smallest into "Other." Assign the lines from both actuals years to those categories;
-put a line that fits none in "Other." Total revenue for each year.
-SECTION D: INSTITUTION EXPENSES (both audited years)
+combining the smallest into "Other." Assign the lines from every actuals year to those categories;
+put a line that fits none in "Other." Total revenue for each year column.
+SECTION D: INSTITUTION EXPENSES (the file's own year and its comparative year)
 Operating expenses by natural classification (salaries, benefits, supplies, depreciation, and so
 on), not by function. If the main statements show only functions, use the notes or the statement of
 functional expenses. Include interest expense on debt. If it is reported outside operating
@@ -75,11 +82,12 @@ amortization of leased buildings.
 - STUFF: everything else, including supplies and services, scholarships and fellowships, other
 expenses, and amortization of software subscriptions. If amortization isn't split between leases
 and subscriptions, put it in SPACE.
-Total expenses for each year.
-SECTION E: UNIT TOTALS (oldest actuals, prior-year actuals, current budget)
-Total revenue and total expenses for each year, matching the totals in Sections A and C. Record
-separately any transfers or allocations from the central institution, and any transfers out.
-SECTION F: BALANCE SHEET AND FACILITIES (most recent audited year)
+Total expenses for each year column.
+SECTION E: UNIT TOTALS (every year column in the unit file)
+Total revenue and total expenses for each year column, matching the totals in Sections A and C.
+Record separately any transfers or allocations from the central institution, and any transfers out.
+SECTION F: BALANCE SHEET AND FACILITIES (the most recent institution report's own year; if
+balance sheet years is ALL, every report's own and comparative years)
 - Cash and cash equivalents.
 - Investments, current and noncurrent, with amounts labeled restricted or endowment shown
 separately.
@@ -102,75 +110,67 @@ expenses and net assets by class, kept separate. Never hospitals, health systems
 associations.
 - From the bond rating report, if provided: agency, rating, and median days cash on hand for that
 rating category.
-CHECKS (do these before drawing; no one else will check these numbers before the charts are
-made)
-- Each audited file's numbers come from the column for its own fiscal year.
+CHECKS (do these before writing the fragment; no one else will check these numbers before the
+charts are made)
+- Each column's fiscal year was read from its printed heading, and each number comes from the
+column for that year.
 - Amounts reported "in thousands" or "in millions" were converted.
 - Included plus excluded revenue lines equal the statement's total revenues, operating plus
-nonoperating.
-- Section D lines equal the statement's total operating expenses, plus any interest you added.
+nonoperating, in each column.
+- Section D lines equal the statement's total operating expenses, plus any interest you added, in
+each column.
 - Net asset classes add up to total net assets.
-- Unit lines add up to the stated totals in each unit year.
-- Count the years between the two audited statements, and between the oldest unit actuals and
-the current budget.
-If a check fails, re-read the source and correct it. If it still fails, continue, and report it in the DATA
-SUMMARY.
+- Unit lines add up to the stated totals in each unit year column.
+- Record each column's year-end date as printed. The merge page counts the years between them.
+If a check fails, re-read the source and correct it. If it still fails, continue, and report it in the
+fragment's checks.
 ===== END ORIGINAL RULES =====
 
-OUTPUT FORMAT FOR THIS STAGE (replaces "Don't print them")
-1. Work one section at a time, in order A, B, C, D, E, F. Finish reading a section's source pages before writing its JSON.
-2. Print a CHECKS table first: Check | PASS / FAIL / N/A | Detail (the two numbers compared). If Unit data is SKIP, mark unit checks N/A.
-3. Then print the database as ONE JSON object in a code block, following the schema below exactly. Use the key names shown. Do not add commentary inside the JSON.
-4. Every number is an object {"v": <whole-dollar integer, or null if NOT FOUND>, "src": "<page or sheet!row>"}. Negative numbers stay negative. Never write thousands or millions.
-5. Every null value whose src is not "N/A" also appears in "not_found". "N/A" means the item does not apply to this institution; NOT FOUND means it applies but you could not find it.
-6. If Unit data is SKIP, set A, C, and E to null.
-7. If the JSON will not fit in one response, stop at the end of a complete line, write "Type continue for the rest of the JSON," and resume exactly where you stopped, so the blocks paste together into one valid JSON.
-8. After the JSON, write: "Stage 2 complete. Save this JSON. Review it with the Stage 3 checklist." Then stop.
+OUTPUT FORMAT FOR EACH FILE
+1. Print a CHECKS table for this file: Check | Column | PASS / FAIL / N/A | Detail (the two numbers compared). If Unit data is SKIP, mark unit checks N/A.
+2. Then print ONE JSON fragment for this file in a code block, following the schema below exactly. Use the key names shown. Do not add commentary inside the JSON.
+3. Every number is an object {"v": <whole-dollar integer, or null if NOT FOUND>, "src": "<page or sheet!row in this file>"}. Negative numbers stay negative. Never write thousands or millions.
+4. Every null value whose src is not "N/A" also appears in "not_found". "N/A" means the item does not apply to this institution; NOT FOUND means it applies but you could not find it.
+5. Sections that do not apply to this file are null: an institution report has A, C, and E null; a unit file has B, D, and F null.
+6. If the fragment will not fit in one response, stop at the end of a complete line, write "Type continue for the rest of the JSON," and resume exactly where you stopped. The merge page joins the parts if I save them as separate files.
+7. After the fragment, write: "Fragment <n> of <total> complete: <file name>. Save it as fragment-<own column key>.json. Type NEXT for the next file." After the last file, write: "All fragments complete. Load every fragment into the merge page, then review with the Stage 3 checklist." Then stop.
 
-SCHEMA (angle brackets describe the value; they are not data)
+FRAGMENT SCHEMA (angle brackets describe the value; they are not data)
 {
+ "kit_schema": "fragment-v2",
+ "file": {"file": "<file name as uploaded>", "kind": "institution|unit", "what": "", "standard": "GASB|FASB|IFRS|other", "audited": <bool>, "units_in_source": "dollars|thousands|millions", "status": "OK|TRUNCATED|UNREADABLE", "last_page_seen": "<printed page [PDF page]>"},
  "meta": {
   "institution": "<name>", "unit": "<name or null>",
   "unit_data_requested": "UPLOAD|SKIP", "unit_data_applied": "UPLOAD|SKIP", "unit_data_reason": "<text>",
-  "basis": "GASB|FASB_case_a|FASB_case_b|IFRS|other", "currency": "<ISO code>", "audited": <true|false>,
-  "page_convention": "printed page [PDF page]",
-  "files": [{"file": "", "what": "", "fiscal_year": "", "year_end": "", "units": "", "standard": "", "audited": <bool>, "readable": <bool>}],
-  "inst_years": {"earlier": "<FY label>", "later": "<FY label>", "years_between": <number>},
-  "unit_years": {"oldest": "<FY label or null>", "prior": "<FY label or null>", "budget": "<FY label or null>", "years_between_oldest_and_budget": <number or null>},
+  "basis": "GASB|FASB_case_a|FASB_case_b|IFRS|other", "currency": "<ISO code>",
+  "page_convention": "printed page [PDF page of the uploaded file]", "balance_sheet_years": "LATEST|ALL",
   "user_decisions": [{"question": "", "answer": ""}]
  },
+ "columns": [{"key": "<institution: FY label, e.g. FY2025; unit: FY label plus A for actuals or B for budget, e.g. FY2025A, FY2026B>", "fiscal_year": "<FY label>", "type": "audited|actual|budget", "role": "own|comparative", "year_end": "<YYYY-MM-DD>", "heading_as_printed": "<column heading, word for word>", "heading_src": "<page>", "restated": <bool>}],
  "A_unit_expenses": {
   "categories": ["<current-budget category names, max 8>"],
-  "lines": [{"label": "<as labeled>", "category": "", "bucket": "PEOPLE|SPACE|STUFF", "oldest": <num>, "prior": <num>, "budget": <num>}],
-  "totals": {"oldest": <num>, "prior": <num>, "budget": <num>}
+  "lines": [{"label": "<as labeled>", "category": "", "bucket": "PEOPLE|SPACE|STUFF", "values": {"<column key>": <num>}}],
+  "totals": {"<column key>": <num>}
  },
  "B_inst_revenue": {
-  "lines": [{"label": "", "operating": <bool>, "included": <bool>, "exclusion_reason": "<text or null>", "category": "<one of the 8 Section B categories, or null if excluded>", "earlier": <num>, "later": <num>}],
-  "total_included": {"earlier": <num>, "later": <num>},
-  "statement_total_revenues": {"earlier": <num>, "later": <num>},
-  "tuition": {
-   "earlier": {"gross": <num>, "allowances": [{"label": "", "amount": <num>}], "allowances_cover_other_revenue": <bool>, "tuition_portion_of_allowances": <num>},
-   "later": {"gross": <num>, "allowances": [{"label": "", "amount": <num>}], "allowances_cover_other_revenue": <bool>, "tuition_portion_of_allowances": <num>}
-  }
+  "lines": [{"label": "", "operating": <bool>, "included": <bool>, "exclusion_reason": "<text or null>", "category": "<one of the 8 Section B categories, or null if excluded>", "values": {"<column key>": <num>}}],
+  "total_included": {"<column key>": <num>},
+  "statement_total_revenues": {"<column key>": <num>},
+  "tuition": {"<column key>": {"gross": <num>, "allowances": [{"label": "", "amount": <num>}], "allowances_cover_other_revenue": <bool>, "tuition_portion_of_allowances": <num>}}
  },
  "C_unit_revenue": {
   "categories": ["<max 8, including Other if used>"],
-  "lines": [{"label": "", "category": "", "is_central_allocation": <bool>, "oldest": <num>, "prior": <num>, "budget": <num>}],
-  "totals": {"oldest": <num>, "prior": <num>, "budget": <num>}
+  "lines": [{"label": "", "category": "", "is_central_allocation": <bool>, "values": {"<column key>": <num>}}],
+  "totals": {"<column key>": <num>}
  },
  "D_inst_expenses": {
   "source_of_natural_classification": "<statement or note name>",
-  "lines": [{"label": "", "bucket": "PEOPLE|SPACE|STUFF", "interest_added_from_outside_operating": <bool>, "earlier": <num>, "later": <num>}],
-  "totals": {"earlier": <num>, "later": <num>},
-  "statement_total_operating_expenses": {"earlier": <num>, "later": <num>}
+  "lines": [{"label": "", "bucket": "PEOPLE|SPACE|STUFF", "interest_added_from_outside_operating": <bool>, "values": {"<column key>": <num>}}],
+  "totals": {"<column key>": <num>},
+  "statement_total_operating_expenses": {"<column key>": <num>}
  },
- "E_unit_totals": {
-  "oldest": {"revenue": <num>, "expenses": <num>, "central_transfers_in": <num>, "transfers_out": <num>},
-  "prior": {"revenue": <num>, "expenses": <num>, "central_transfers_in": <num>, "transfers_out": <num>},
-  "budget": {"revenue": <num>, "expenses": <num>, "central_transfers_in": <num>, "transfers_out": <num>}
- },
- "F_balance_sheet": {
-  "year": "<FY label>",
+ "E_unit_totals": {"<column key>": {"revenue": <num>, "expenses": <num>, "central_transfers_in": <num>, "transfers_out": <num>}},
+ "F_balance_sheet": {"<column key>": {
   "cash_and_equivalents": <num>,
   "investments": [{"label": "", "current": <bool>, "restricted_or_endowment": <bool>, "held_by_foundation": <bool>, "amount": <num>}],
   "investments_only_in_notes": <bool>,
@@ -186,9 +186,9 @@ SCHEMA (angle brackets describe the value; they are not data)
   "pension_opeb_deferred_outflows": <num>, "pension_opeb_deferred_inflows": <num>,
   "foundation": {"present": <bool>, "name": "", "total_expenses": <num>, "without_donor_restrictions": <num>, "with_donor_held_in_perpetuity": <num>, "with_donor_not_in_perpetuity": <num>},
   "rating": {"provided": <bool>, "agency": "", "rating": "", "median_days_cash": <num>}
- },
- "checks": [{"check": "", "status": "PASS|FAIL|N/A", "detail": ""}],
+ }},
+ "checks": [{"check": "", "column": "<column key>", "status": "PASS|FAIL|N/A", "detail": ""}],
  "judgment_calls": ["<excluded revenue lines and why; lines that mix buckets; placement of amortization and scholarship allowances>"],
- "not_found": [{"section": "", "item": ""}]
+ "not_found": [{"section": "", "column": "<column key>", "item": ""}]
 }
-<num> means {"v": integer or null, "src": "page or sheet!row"}. Use null for <num> fields that do not apply (for example, net_assets_private at a public institution) and set src to "N/A".
+<num> means {"v": integer or null, "src": "page or sheet!row"}. Use null for <num> fields that do not apply (for example, net_assets_private at a public institution) and set src to "N/A". Every "values", "totals", and other object keyed by "<column key>" has one entry for each column listed in "columns" for this file.

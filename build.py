@@ -3,9 +3,11 @@
 
 Prompt text (every ```text block) is copied byte-for-byte; it is only
 HTML-escaped for embedding, never reflowed or trimmed.
+Also writes merge.html from src/merge.template.html + src/demo_fragments.json.
 Run: python3 build.py
 """
 import html
+import json
 import re
 from pathlib import Path
 
@@ -36,6 +38,7 @@ def inline(s):
         else:
             e = html.escape(p, quote=False)
             e = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", e)
+            e = re.sub(r"\[([^\]]+)\]\(([^)\s\"]+)\)", r'<a href="\2">\1</a>', e)
             out.append(e)
     return "".join(out)
 
@@ -180,6 +183,7 @@ nav.toc a{display:block;padding:4px 10px;border-left:2px solid var(--line);color
 nav.toc a:hover{background:var(--panel)}
 nav.toc a.active{border-left-color:var(--accent);color:var(--accent);font-weight:600}
 nav.toc li.l3 a{padding-left:24px;color:var(--muted);font-size:13px}
+nav.toc li.ext a{margin-top:12px;font-weight:600;color:var(--accent)}
 main{min-width:0;padding:28px 0 80px;max-width:820px}
 h1{font-size:1.9rem;line-height:1.25;margin:.2em 0 .3em}
 h2{font-size:1.4rem;margin:2.2em 0 .6em;padding-top:.6em;border-top:1px solid var(--line)}
@@ -298,7 +302,15 @@ def main():
 
     toc_html = "".join(
         f'<li class="l{lvl}"><a href="#{slug}">{inline(text)}</a></li>' for lvl, slug, text in toc
-    )
+    ) + '<li class="l2 ext"><a href="merge.html">Merge page &rarr;</a></li>'
+
+    # merge.html: template + synthetic demo data (escaped for a <script> element)
+    demo = json.loads((ROOT / "src" / "demo_fragments.json").read_text(encoding="utf-8"))
+    demo_js = json.dumps(demo, separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/")
+    template = (ROOT / "src" / "merge.template.html").read_text(encoding="utf-8")
+    if template.count("/*DEMO_DATA*/") != 1:
+        raise SystemExit("merge template must contain exactly one /*DEMO_DATA*/ placeholder")
+    (ROOT / "merge.html").write_text(template.replace("/*DEMO_DATA*/", demo_js), encoding="utf-8")
     page = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -322,7 +334,7 @@ def main():
 </html>
 """
     (ROOT / "index.html").write_text(page, encoding="utf-8")
-    print(f"Wrote index.html and {len(prompts)} prompt files.")
+    print(f"Wrote index.html, merge.html, and {len(prompts)} prompt files.")
 
 
 if __name__ == "__main__":
